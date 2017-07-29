@@ -43,7 +43,8 @@ public final class DependencyContainer {
   var definitions = [DefinitionKey: _Definition]()
   var resolvedInstances = ResolvedInstances()
   private let lock = RecursiveLock()
-  
+
+  let parent: DependencyContainer?
   var bootstrapped = false
   var bootstrapQueue: [() throws -> ()] = []
   
@@ -79,8 +80,10 @@ public final class DependencyContainer {
    
    - returns: A new DependencyContainer.
    */
-  public init(configBlock: (DependencyContainer)->() = { _ in }) {
+  public init(parent: DependencyContainer? = nil,  configBlock: (DependencyContainer)->() = { _ in }) {
+    self.parent = parent
     configBlock(self)
+
   }
   
   /**
