@@ -141,14 +141,24 @@ extension DependencyContainer {
       } catch {
         if let _parent = self.parent {
           
-          
           if let resolved = try? _parent.inContext(key:aKey,
                                                    injectedInType: self.context.injectedInType,
                                                    injectedInProperty: self.context.injectedInProperty,
                                                    inCollaboration: false,
                                                    logErrors: false ,
-                                                   block: {
-                try _parent._resolve(key: aKey, builder: builder)
+                                                   block: { () throws -> T in
+
+                                                    _parent.resolvedInstances.resolvedInstances = self.resolvedInstances.resolvedInstances
+                                                    defer {
+                                                      _parent.resolvedInstances.resolvedInstances.removeAll()
+                                                    }
+                                                    do {
+                                                      let resolved = try _parent._resolve(key: aKey, builder: builder)
+                                                      self.resolvedInstances.resolvedInstances[aKey] = resolved
+                                                      return resolved
+                                                    } catch {
+                                                      throw error
+                                                    }
           }) {
             return resolved
           }
