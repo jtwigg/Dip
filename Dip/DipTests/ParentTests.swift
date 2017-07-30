@@ -89,9 +89,7 @@ class CollaborateTests: XCTestCase {
       return ServiceA()
     }
 
-
     XCTAssertNotNil(try? rootContainer.resolve() as ServiceA)
-
 
     let unloggedIn = DependencyContainer(parent: rootContainer)
     unloggedIn.register(.singleton) { Password(text: "-none-", service:$0) }
@@ -101,7 +99,7 @@ class CollaborateTests: XCTestCase {
     let passwordA = try? unloggedIn.resolve() as Password
 
     XCTAssert(passwordA?.text == "-none-")
-    XCTAssert(count == 1) ////<< Works
+    XCTAssert(count == 1)
 
     let loggedIn = DependencyContainer(parent: rootContainer)
 
@@ -112,19 +110,20 @@ class CollaborateTests: XCTestCase {
     XCTAssert(count == 1)
   }
 
-  class RootTranientDep { }
+
+  class RootTransientDep { }
   class ChildTransientDep {}
 
 
   class ChildAggregate {
-    let rootDep : RootTranientDep
-    var anotherRootDep : RootTranientDep?
+    let rootDep : RootTransientDep
+    var anotherRootDep : RootTransientDep?
 
     let childDep : ChildTransientDep
     var anotherChildDep : ChildTransientDep?
 
 
-    init(rootDep : RootTranientDep, childDep : ChildTransientDep){
+    init(rootDep : RootTransientDep, childDep : ChildTransientDep){
       self.rootDep = rootDep
       self.childDep = childDep
     }
@@ -134,9 +133,9 @@ class CollaborateTests: XCTestCase {
     let rootContainer = DependencyContainer()
 
     var countR = 0
-    rootContainer.register { () -> RootTranientDep in
+    rootContainer.register { () -> RootTransientDep in
       countR = countR + 1
-      return RootTranientDep()
+      return RootTransientDep()
     }
 
     let childContainer = DependencyContainer(parent: rootContainer)
