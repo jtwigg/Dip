@@ -139,39 +139,18 @@ extension DependencyContainer {
       do {
         return try autowire(key: aKey)
       } catch {
-        if let _parent = self.parent {
-          
-          if let resolved = try? _parent.inContext(key:aKey,
-                                                   injectedInType: self.context.injectedInType,
-                                                   injectedInProperty: self.context.injectedInProperty,
-                                                   inCollaboration: false,
-                                                   logErrors: false ,
-                                                   block: { () throws -> T in
-
-                                                    _parent.resolvedInstances.resolvedInstances = self.resolvedInstances.resolvedInstances
-                                                    defer {
-                                                      _parent.resolvedInstances.resolvedInstances.removeAll()
-                                                    }
-                                                    do {
-                                                      let resolved = try _parent._resolve(key: aKey, builder: builder)
-                                                      self.resolvedInstances.resolvedInstances[aKey] = resolved
-                                                      return resolved
-                                                    } catch {
-                                                      throw error
-                                                    }
-          }) {
-            return resolved
-          }
-
-
-          //}
-        }
-
+        //Try to resolve using Collaboratino first.
         if let resolved = collaboratingResolve(key: aKey, builder: builder) {
           return resolved
-        } else {
-          throw error
         }
+
+        //Now try to reoslve using parent child relationships.
+        if let resolved = parentResolve(key: aKey, builder: builder) {
+            return resolved
+        }
+       
+
+        throw error
       }
     }
     
