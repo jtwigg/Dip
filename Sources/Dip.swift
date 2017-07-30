@@ -267,13 +267,13 @@ extension DependencyContainer {
    */
   public func collaborate(with containers: [DependencyContainer]) {
     _collaborators += containers
-      for container in containers {
-        container._collaborators += [self]
+    for container in containers {
+      container._collaborators += [self]
       container.resolvedInstances.sharedSingletonsBox = self.resolvedInstances.sharedSingletonsBox
       container.resolvedInstances.sharedWeakSingletonsBox = self.resolvedInstances.sharedWeakSingletonsBox
-        updateCollaborationReferences(between: container, and: self)
-      }
+      updateCollaborationReferences(between: container, and: self)
     }
+  }
   
   private func updateCollaborationReferences(between container: DependencyContainer, and collaborator: DependencyContainer) {
     for container in container._collaborators {
@@ -283,8 +283,7 @@ extension DependencyContainer {
       updateCollaborationReferences(between: container, and: collaborator)
     }
   }
-
-
+  
   /// Tries to resolve key using collaborating containers
   func collaboratingResolve<T>(key aKey: DefinitionKey, builder: (_Definition) throws -> T) -> T? {
     let key = aKey
@@ -294,7 +293,7 @@ extension DependencyContainer {
       //so there is probably a cercular reference between containers.
       //To break it skip this container
       if let context = collaborator.context, context.resolvingType == key.type && context.tag == key.tag { continue }
-
+      
       do {
         //Pass current container's instances pool to collect instances resolved by collaborator
         let resolvedInstances = collaborator.resolvedInstances
@@ -305,7 +304,7 @@ extension DependencyContainer {
         defer {
           collaborator.context = context
           collaborator.resolvedInstances = resolvedInstances
-
+          
           //get back singletons and shared instances registered in collaborator
           //and resolved during collaboration, so that they can be reused again later
           if let matched = collaborator.definition(matching: aKey) as? _Definition {
@@ -319,7 +318,7 @@ extension DependencyContainer {
             case .unique:
               break
             }
-        }
+          }
 
           for (key, resolvedSingleton) in self.resolvedInstances.singletons {
             collaborator.resolvedInstances.singletons[aKey] = resolvedSingleton
@@ -333,10 +332,10 @@ extension DependencyContainer {
             collaborator.resolvedInstances.resolvedInstances[aKey] = resolved
           }
         }
-
+        
         let resolved = try collaborator.inContext(key:key, injectedInType: self.context.injectedInType, injectedInProperty: self.context.injectedInProperty, inCollaboration: true, logErrors: false) {
           try collaborator._resolve(key: key, builder: builder)
-      }
+        }
 
         return resolved
       }
