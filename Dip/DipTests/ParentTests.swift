@@ -157,9 +157,117 @@ class CollaborateTests: XCTestCase {
       return ChildTransientDep()
     }
 
-    XCTAssertNotNil(try? childContainer.resolve() as ChildAggregate)
+    let childAggregate: ChildAggregate? = try? childContainer.resolve() as ChildAggregate
 
+    XCTAssertNotNil(childAggregate)
     XCTAssert(countR == 1)
     XCTAssert(countC == 1)
+
+    XCTAssert(childAggregate?.rootDep === childAggregate?.anotherRootDep)
+    XCTAssert(childAggregate?.childDep === childAggregate?.anotherChildDep)
+
   }
+
+
+  class LevelOne {
+    let title: String
+    init(title: String) {
+      self.title = title
+    }
+
+  }
+
+  class LevelTwo {
+    let levelOne : LevelOne
+    init(levelOne : LevelOne ){
+      self.levelOne = levelOne
+    }
+  }
+
+  class LevelThree {
+    let levelTwo : LevelTwo
+    var anotherLevelTwo : LevelTwo?
+    init(levelTwo : LevelTwo ){
+      self.levelTwo = levelTwo
+    }
+  }
+
+
+  func testTwoParentHierachy() {
+
+    let levelOneContainer = DependencyContainer()
+    levelOneContainer.register {
+      LevelOne(title: "LevelOne")
+    }
+
+    let levelTwoContainer = DependencyContainer(parent: levelOneContainer)
+    levelTwoContainer.register {
+      LevelTwo(levelOne: $0)
+    }
+
+    let levelThreeContainer = DependencyContainer(parent: levelTwoContainer)
+    levelThreeContainer.register {
+      LevelThree(levelTwo: $0)
+      }.resolvingProperties { (container, levelThreeContainer) -> () in
+        levelThreeContainer.anotherLevelTwo = try? container.resolve() as LevelTwo
+    }
+
+
+    guard let levelThree = try? levelThreeContainer.resolve() as LevelThree else {
+      XCTFail("Nil returned from level three resolve")
+      return
+    }
+
+    XCTAssertNotNil(levelThree.anotherLevelTwo)
+    XCTAssert(levelThree.levelTwo === levelThree.anotherLevelTwo)
+    XCTAssert(levelThree.levelTwo.levelOne === levelThree.anotherLevelTwo?.levelOne)
+  }
+
+  class LevelThreeAggregate {
+    let levelThree : LevelThree
+    let levelOne : LevelOne
+
+    init(levelThree: LevelThree, levelOne : LevelOne)
+    {
+      self.levelThree = levelThree
+      self.levelOne = levelOne
+    }
+  }
+
+  //Resolving Containers that are overriden by a child, should use the childs implementation.
+  func testResolutionCollision() {
+
+    let levelOneContainer = DependencyContainer()
+    levelOneContainer.register {
+      LevelOne(title:"LevelOne")
+    }
+
+    let levelTwoContainer = DependencyContainer(parent: levelOneContainer)
+    levelTwoContainer.register {
+      LevelTwo(levelOne: $0)
+    }
+
+    let levelThreeContainer = DependencyContainer(parent: levelTwoContainer)
+    levelThreeContainer.register {
+      LevelThree(levelTwo: $0)
+      }.resolvingProperties { (container, levelThreeContainer) -> () in
+        levelThreeContainer.anotherLevelTwo = try? container.resolve() as LevelTwo
+    }
+    levelThreeContainer.register {
+      LevelOne(title:"LevelThree")
+    }
+
+    levelThreeContainer.register {
+      LevelThreeAggregate(levelThree: $0, levelOne: $1)
+    }
+
+    guard let levelThreeAggregate = try? levelThreeContainer.resolve() as LevelThreeAggregate else {
+      XCTFail("Nil returned from level three aggregate resolve")
+      return
+    }
+
+    XCTAssert(levelThreeAggregate.levelOne === levelThreeAggregate.levelThree.levelTwo.levelOne)
+    XCTAssert(levelThreeAggregate.levelOne.title == "LevelThree")
+  }
+
 }

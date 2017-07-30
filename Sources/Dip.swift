@@ -375,8 +375,12 @@ extension DependencyContainer {
           }
           do {
             let resolved = try parent._resolve(key: aKey, builder: builder)
-            //Store the resulting instance in our current resolve() call's  instances.
-            self.resolvedInstances.resolvedInstances[aKey] = resolved
+
+            //Store the resulting resolved instances of this call back into our working copy resolve() call's  instances.
+            parent.resolvedInstances.resolvedInstances.forEach({ (key: DefinitionKey, value: Any) in
+                self.resolvedInstances.resolvedInstances[key] = value
+            })
+
             return resolved
           } catch {
             throw error
