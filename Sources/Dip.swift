@@ -48,15 +48,7 @@ public final class DependencyContainer {
   var bootstrapped = false
   var bootstrapQueue: [() throws -> ()] = []
   
-  private var _weakCollaborators: [WeakBox<DependencyContainer>] = []
-  var _collaborators: [DependencyContainer] {
-    get {
-      return _weakCollaborators.flatMap({ $0.value })
-    }
-    set {
-      _weakCollaborators = newValue.filter({ $0 !== self }).map(WeakBox.init)
-    }
-  }
+
 
   /**
    Designated initializer for a DependencyContainer
@@ -258,7 +250,7 @@ extension DependencyContainer {
    References to the container itself are ignored.
    */
   public func collaborate(with containers: DependencyContainer...) {
-    collaborate(with: containers)
+   // collaborate(with: containers)
   }
   
   /**
@@ -266,84 +258,84 @@ extension DependencyContainer {
    References to the container itself are ignored.
    */
   public func collaborate(with containers: [DependencyContainer]) {
-    _collaborators += containers
-    for container in containers {
-      container._collaborators += [self]
-      container.resolvedInstances.sharedSingletonsBox = self.resolvedInstances.sharedSingletonsBox
-      container.resolvedInstances.sharedWeakSingletonsBox = self.resolvedInstances.sharedWeakSingletonsBox
-      updateCollaborationReferences(between: container, and: self)
-    }
+//    _collaborators += containers
+//    for container in containers {
+//      container._collaborators += [self]
+//      container.resolvedInstances.sharedSingletonsBox = self.resolvedInstances.sharedSingletonsBox
+//      container.resolvedInstances.sharedWeakSingletonsBox = self.resolvedInstances.sharedWeakSingletonsBox
+//      updateCollaborationReferences(between: container, and: self)
+//    }
   }
   
   private func updateCollaborationReferences(between container: DependencyContainer, and collaborator: DependencyContainer) {
-    for container in container._collaborators {
-      guard container.resolvedInstances.sharedSingletonsBox !== collaborator.resolvedInstances.sharedSingletonsBox else { continue }
-      container.resolvedInstances.sharedSingletonsBox = collaborator.resolvedInstances.sharedSingletonsBox
-      container.resolvedInstances.sharedWeakSingletonsBox = collaborator.resolvedInstances.sharedWeakSingletonsBox
-      updateCollaborationReferences(between: container, and: collaborator)
-    }
+//    for container in container._collaborators {
+//      guard container.resolvedInstances.sharedSingletonsBox !== collaborator.resolvedInstances.sharedSingletonsBox else { continue }
+//      container.resolvedInstances.sharedSingletonsBox = collaborator.resolvedInstances.sharedSingletonsBox
+//      container.resolvedInstances.sharedWeakSingletonsBox = collaborator.resolvedInstances.sharedWeakSingletonsBox
+//      updateCollaborationReferences(between: container, and: collaborator)
+//    }
   }
   
-  /// Tries to resolve key using collaborating containers
-  func collaboratingResolve<T>(key aKey: DefinitionKey, builder: (_Definition) throws -> T) -> T? {
-    let key = aKey
-    for collaborator in _collaborators {
-      //if container is already in a context resolving this type
-      //it means that it has been already called to resolve this type,
-      //so there is probably a cercular reference between containers.
-      //To break it skip this container
-      if let context = collaborator.context, context.resolvingType == key.type && context.tag == key.tag { continue }
-      
-      do {
-        //Pass current container's instances pool to collect instances resolved by collaborator
-        let resolvedInstances = collaborator.resolvedInstances
-        collaborator.resolvedInstances = self.resolvedInstances
-        //Set collaborator context to preserve current container context
-        let context = collaborator.context
-        collaborator.context = self.context
-        defer {
-          collaborator.context = context
-          collaborator.resolvedInstances = resolvedInstances
-          
-          //get back singletons and shared instances registered in collaborator
-          //and resolved during collaboration, so that they can be reused again later
-          if let matched = collaborator.definition(matching: aKey) as? _Definition {
-            switch matched.scope {
-            case .singleton, .eagerSingleton:
-              collaborator.resolvedInstances.singletons[aKey] = self.resolvedInstances.singletons[aKey]
-            case .weakSingleton:
-              collaborator.resolvedInstances.weakSingletons[aKey] = self.resolvedInstances.weakSingletons[aKey]
-            case .shared:
-              collaborator.resolvedInstances.resolvedInstances[aKey] = self.resolvedInstances.resolvedInstances[aKey]
-            case .unique:
-              break
-            }
-          }
+//  /// Tries to resolve key using collaborating containers
+//  func collaboratingResolve<T>(key aKey: DefinitionKey, builder: (_Definition) throws -> T) -> T? {
+//    let key = aKey
+//    for collaborator in _collaborators {
+//      //if container is already in a context resolving this type
+//      //it means that it has been already called to resolve this type,
+//      //so there is probably a cercular reference between containers.
+//      //To break it skip this container
+//      if let context = collaborator.context, context.resolvingType == key.type && context.tag == key.tag { continue }
+//      
+//      do {
+//        //Pass current container's instances pool to collect instances resolved by collaborator
+//        let resolvedInstances = collaborator.resolvedInstances
+//        collaborator.resolvedInstances = self.resolvedInstances
+//        //Set collaborator context to preserve current container context
+//        let context = collaborator.context
+//        collaborator.context = self.context
+//        defer {
+//          collaborator.context = context
+//          collaborator.resolvedInstances = resolvedInstances
+//          
+//          //get back singletons and shared instances registered in collaborator
+//          //and resolved during collaboration, so that they can be reused again later
+//          if let matched = collaborator.definition(matching: aKey) as? _Definition {
+//            switch matched.scope {
+//            case .singleton, .eagerSingleton:
+//              collaborator.resolvedInstances.singletons[aKey] = self.resolvedInstances.singletons[aKey]
+//            case .weakSingleton:
+//              collaborator.resolvedInstances.weakSingletons[aKey] = self.resolvedInstances.weakSingletons[aKey]
+//            case .shared:
+//              collaborator.resolvedInstances.resolvedInstances[aKey] = self.resolvedInstances.resolvedInstances[aKey]
+//            case .unique:
+//              break
+//            }
+//          }
+//
+//          for (key, resolvedSingleton) in self.resolvedInstances.singletons {
+//            collaborator.resolvedInstances.singletons[aKey] = resolvedSingleton
+//          }
+//          for (_, resolvedSingleton) in self.resolvedInstances.weakSingletons {
+//            guard collaborator.definition(matching: aKey) != nil else { continue }
+//            collaborator.resolvedInstances.weakSingletons[aKey] = WeakBox(resolvedSingleton)
+//          }
+//          for (_, resolved) in self.resolvedInstances.resolvedInstances {
+//            guard collaborator.definition(matching: aKey) != nil else { continue }
+//            collaborator.resolvedInstances.resolvedInstances[aKey] = resolved
+//          }
+//        }
+//        
+//        let resolved = try collaborator.inContext(key:key, injectedInType: self.context.injectedInType, injectedInProperty: self.context.injectedInProperty, inCollaboration: true, logErrors: false) {
+//          try collaborator._resolve(key: key, builder: builder)
+//        }
+//
+//        return resolved
+//      }
+//      catch { }
+//    }
+//    return nil
+//  }
 
-          for (key, resolvedSingleton) in self.resolvedInstances.singletons {
-            collaborator.resolvedInstances.singletons[aKey] = resolvedSingleton
-          }
-          for (_, resolvedSingleton) in self.resolvedInstances.weakSingletons {
-            guard collaborator.definition(matching: aKey) != nil else { continue }
-            collaborator.resolvedInstances.weakSingletons[aKey] = WeakBox(resolvedSingleton)
-          }
-          for (_, resolved) in self.resolvedInstances.resolvedInstances {
-            guard collaborator.definition(matching: aKey) != nil else { continue }
-            collaborator.resolvedInstances.resolvedInstances[aKey] = resolved
-          }
-        }
-        
-        let resolved = try collaborator.inContext(key:key, injectedInType: self.context.injectedInType, injectedInProperty: self.context.injectedInProperty, inCollaboration: true, logErrors: false) {
-          try collaborator._resolve(key: key, builder: builder)
-        }
-
-        return resolved
-      }
-      catch { }
-    }
-    return nil
-  }
-  
 }
 
 // MARK: - Removing definitions
