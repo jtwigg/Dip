@@ -51,30 +51,32 @@ class CollaborateTests: XCTestCase {
 
     XCTAssertNotNil(try? rootContainer.resolve() as ServiceA)
 
-    let loggedIn = DependencyContainer(parent: rootContainer)
-    var countL = 0
-    loggedIn.register(.singleton) { (serviceA: ServiceA) -> Password in
-      countL = countL + 1
+    let userA = DependencyContainer(parent: rootContainer)
+    var countA = 0
+    userA.register(.singleton) { (serviceA: ServiceA) -> Password in
+      countA = countA + 1
       return Password(text: "1234", service:serviceA)
     }
 
 
-    let unloggedIn = DependencyContainer(parent: rootContainer)
-    var countU = 0
-    unloggedIn.register(.singleton) { (serviceA: ServiceA) -> Password in
-      countU = countU + 1
-      return Password(text: "-none-", service:serviceA)
+    let userB = DependencyContainer(parent: rootContainer)
+    var countB = 0
+    userB.register(.singleton) { (serviceA: ServiceA) -> Password in
+      countB = countB + 1
+      return Password(text: "ABCD", service:serviceA)
     }
 
-    XCTAssert((try! loggedIn.resolve() as Password).text == "1234")
+    XCTAssert((try! userA.resolve() as Password).text == "1234")
     XCTAssert(countR == 1)
-    XCTAssert(countL == 1)
+    XCTAssert(countA == 1)
 
 
-    XCTAssert((try! unloggedIn.resolve() as Password).text == "-none-")
+    XCTAssert((try! userB.resolve() as Password).text == "ABCD")
     XCTAssert(countR == 1)
-    XCTAssert(countU == 1)
+    XCTAssert(countB == 1)
 
+    //Root doesn't have access to its children.
+    XCTAssertNil(try? rootContainer.resolve() as Password)
   }
 
 
@@ -92,18 +94,18 @@ class CollaborateTests: XCTestCase {
       return ServiceA()
     }
 
-    //Unlogged in user.
-    let unloggedIn = DependencyContainer(parent: rootContainer)
-    unloggedIn.register(.singleton) { Password(text: "-none-", service:$0) }
-    let passwordA = try? unloggedIn.resolve() as Password
-    XCTAssert(passwordA?.text == "-none-")
+    //Logged in user.
+    let loggedIn = DependencyContainer(parent: rootContainer)
+    loggedIn.register(.singleton) { Password(text: "1234", service:$0) }
+    let passwordLoggedIn : Password? = try? loggedIn.resolve() as Password
+    XCTAssert(passwordLoggedIn?.text == "1234")
     XCTAssert(count == 1)
 
 
-    //Logged in user doesn't have access to Unlogged in users data.
-    let loggedIn = DependencyContainer(parent: rootContainer)
-    let passwordB : Password? = try? loggedIn.resolve() as Password
-    XCTAssertNil(passwordB)
+    //UnLogged in user doesn't have access to Logged in users data.
+    let unloggedIn = DependencyContainer(parent: rootContainer)
+    let passwordUnloggedIn = try? unloggedIn.resolve() as Password
+    XCTAssertNil(passwordUnloggedIn);
     XCTAssert(count == 1)
 
     //Root container doesn't have access to child containers data.
@@ -113,7 +115,6 @@ class CollaborateTests: XCTestCase {
 
   class RootTransientDep { }
   class ChildTransientDep {}
-
 
   class ChildAggregate {
     let rootDep : RootTransientDep
@@ -129,7 +130,10 @@ class CollaborateTests: XCTestCase {
     }
   }
 
-  //Instances of that are resolved from parents are reused similar to how they're reused within containers and collaborators.
+ /*
+ * Instances of that are resolved from parents are reused similar 
+ * to how they're reused within containers and collaborators.
+ */
   func testParentContainersReuseInstances() {
     let rootContainer = DependencyContainer()
 
@@ -144,8 +148,6 @@ class CollaborateTests: XCTestCase {
       ChildAggregate(rootDep: $0, childDep: $1)
       }.resolvingProperties { (container, childAggregate) -> () in
         childAggregate.anotherRootDep = try? container.resolve()
-        childAggregate.anotherRootDep = try? container.resolve()
-        childAggregate.anotherChildDep = try? container.resolve()
         childAggregate.anotherChildDep = try? container.resolve()
     }
 
