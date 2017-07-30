@@ -283,7 +283,8 @@ extension DependencyContainer {
       updateCollaborationReferences(between: container, and: collaborator)
     }
   }
-  
+
+
   /// Tries to resolve key using collaborating containers
   func collaboratingResolve<T>(key aKey: DefinitionKey, builder: (_Definition) throws -> T) -> T? {
     let key = aKey
