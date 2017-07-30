@@ -52,35 +52,6 @@
                BlueprintName = "DipTests"
                ReferencedContainer = "container:Dip.xcodeproj">
             </BuildableReference>
-            <SkippedTests>
-               <Test
-                  Identifier = "AutoInjectionTests">
-               </Test>
-               <Test
-                  Identifier = "AutoWiringTests">
-               </Test>
-               <Test
-                  Identifier = "ComponentScopeTests">
-               </Test>
-               <Test
-                  Identifier = "ContextTests">
-               </Test>
-               <Test
-                  Identifier = "DefinitionTests">
-               </Test>
-               <Test
-                  Identifier = "DipTests">
-               </Test>
-               <Test
-                  Identifier = "RuntimeArgumentsTests">
-               </Test>
-               <Test
-                  Identifier = "ThreadSafetyTests">
-               </Test>
-               <Test
-                  Identifier = "TypeForwardingTests">
-               </Test>
-            </SkippedTests>
          </TestableReference>
       </Testables>
       <MacroExpansion>
