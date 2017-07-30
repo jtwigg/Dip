@@ -47,10 +47,8 @@ class CollaborateTests: XCTestCase {
       return ServiceA()
     }
 
-
     XCTAssertNotNil(try? rootContainer.resolve() as ServiceA)
 
-    return
     let loggedIn = DependencyContainer(parent: rootContainer)
     var countL = 0
     loggedIn.register(.singleton) { (serviceA: ServiceA) -> Password in
@@ -66,9 +64,6 @@ class CollaborateTests: XCTestCase {
       return Password(text: "-none-", service:serviceA)
     }
 
-    // NOTE: Isolated containers
-
-
     XCTAssert((try! loggedIn.resolve() as Password).text == "1234")  //<<<Works
     XCTAssert((try! loggedIn.resolve() as Password).text == "1234")  //<<<Works
     XCTAssert(count == 1)
@@ -81,7 +76,6 @@ class CollaborateTests: XCTestCase {
     XCTAssert(countU == 1) ////<< Works
 
 
-    XCTAssert(count == 1)
 
   }
 
@@ -99,20 +93,18 @@ class CollaborateTests: XCTestCase {
 
     XCTAssertNotNil(try? rootContainer.resolve() as ServiceA)
 
-    let loggedIn = DependencyContainer()
 
-    let unloggedIn = DependencyContainer()
+    let unloggedIn = DependencyContainer(parent: rootContainer)
     unloggedIn.register(.singleton) { Password(text: "-none-", service:$0) }
-
-    loggedIn.collaborate(.uni, with: rootContainer) //Isolated containers
-    unloggedIn.collaborate(.uni, with: rootContainer)//Isolated Container
 
     XCTAssertNil(try? rootContainer.resolve() as Password)
 
-    let passwordA = try! unloggedIn.resolve() as Password
+    let passwordA = try? unloggedIn.resolve() as Password
 
-    XCTAssert(passwordA.text == "-none-")
+    XCTAssert(passwordA?.text == "-none-")
     XCTAssert(count == 1) ////<< Works
+
+    let loggedIn = DependencyContainer(parent: rootContainer)
 
     let passwordB : Password? = try? loggedIn.resolve() as Password
 
@@ -121,4 +113,50 @@ class CollaborateTests: XCTestCase {
     XCTAssert(count == 1)
   }
 
+  class RootTranientDep { }
+  class ChildTransientDep {}
+
+
+  class ChildAggregate {
+    let rootDep : RootTranientDep
+    var anotherRootDep : RootTranientDep?
+
+    let childDep : ChildTransientDep
+    var anotherChildDep : ChildTransientDep?
+
+
+    init(rootDep : RootTranientDep, childDep : ChildTransientDep){
+      self.rootDep = rootDep
+      self.childDep = childDep
+    }
+  }
+
+  func testTransientDeps() {
+    let rootContainer = DependencyContainer()
+
+    var countR = 0
+    rootContainer.register { () -> RootTranientDep in
+      countR = countR + 1
+      return RootTranientDep()
+    }
+
+    let childContainer = DependencyContainer(parent: rootContainer)
+    childContainer.register {
+      ChildAggregate(rootDep: $0, childDep: $1)
+      }.resolvingProperties { (container, childAggregate) -> () in
+        childAggregate.anotherRootDep = try? container.resolve()
+        childAggregate.anotherChildDep = try? container.resolve()
+    }
+
+    var countC = 0
+    childContainer.register { () -> ChildTransientDep in
+      countC = countC + 1
+      return ChildTransientDep()
+    }
+
+    XCTAssertNotNil(try? childContainer.resolve() as ChildAggregate)
+
+    XCTAssert(countR == 2) //Would be ideal if it was one.
+    XCTAssert(countC == 1)
+  }
 }
