@@ -35,26 +35,8 @@ extension DependencyContainer {
     guard key.typeOfArguments == Void.self else {
       throw DipError.definitionNotFound(key: key)
     }
-
-    var autoWiringKeyVar : DefinitionKey?
-    do {
-      autoWiringKeyVar = try autoWiringDefinition(byKey: key).key
-    }
-    catch {
-      guard let parent = self.parent else {
-        throw error
-      }
-
-      do {
-        let val : T = try parent.resolve(T.self, tag: aKey.tag) as! T
-        return val
-      }
-      throw error
-    }
-
-    guard let autoWiringKey = autoWiringKeyVar else {
-      throw DipError.definitionNotFound(key: aKey)
-    }
+    
+    let autoWiringKey = try autoWiringDefinition(byKey: key).key
     
     do {
       let key = autoWiringKey.tagged(with: key.tag ?? context.tag)
