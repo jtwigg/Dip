@@ -23,7 +23,6 @@ class CollaborateTests: XCTestCase {
   }
 
 
-
   class ServiceA {}
 
   class Password {
@@ -131,7 +130,7 @@ class CollaborateTests: XCTestCase {
     }
   }
 
-  func testTransientDeps() {
+  func testParentContainersReuseInstances() {
     let rootContainer = DependencyContainer()
 
     var countR = 0
@@ -156,7 +155,7 @@ class CollaborateTests: XCTestCase {
 
     XCTAssertNotNil(try? childContainer.resolve() as ChildAggregate)
 
-    XCTAssert(countR == 2) //Would be ideal if it was one.
+    XCTAssert(countR == 1)
     XCTAssert(countC == 1)
   }
 }
