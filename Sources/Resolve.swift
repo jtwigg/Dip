@@ -148,7 +148,7 @@ extension DependencyContainer {
         if let resolved = parentResolve(key: aKey, builder: builder) {
             return resolved
         }
-       
+
         throw error
       }
     }
@@ -166,7 +166,7 @@ extension DependencyContainer {
     
     /*
      Strongly-typed `resolve(tag:builder:)` calls weakly-typed `resolve(_:tag:builder:)`,
-     so `T` will be `Any` at runtime, erasing type information when this method returns.
+     so `T` will be `Any` at runti me, erasing type information when this method returns.
      When we try to cast result of `Any` to generic type T Swift fails to cast it.
      The same happens in the following code snippet:
      
