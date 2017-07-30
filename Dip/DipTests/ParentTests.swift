@@ -144,6 +144,8 @@ class CollaborateTests: XCTestCase {
       ChildAggregate(rootDep: $0, childDep: $1)
       }.resolvingProperties { (container, childAggregate) -> () in
         childAggregate.anotherRootDep = try? container.resolve()
+        childAggregate.anotherRootDep = try? container.resolve()
+        childAggregate.anotherChildDep = try? container.resolve()
         childAggregate.anotherChildDep = try? container.resolve()
     }
 

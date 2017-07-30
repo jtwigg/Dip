@@ -347,6 +347,42 @@ extension DependencyContainer {
 
 }
 
+// MARK: - Parent Child resolving 
+
+extension DependencyContainer {
+
+  func parentResolve<T>(key aKey: DefinitionKey, builder: (_Definition) throws -> T) -> T? {
+
+    guard let parent = self.parent else {
+      return nil
+    }
+
+    let resolved = try? parent.inContext(key:aKey,
+                                         injectedInType: self.context.injectedInType,
+                                         injectedInProperty: self.context.injectedInProperty,
+                                         inCollaboration: false,
+                                         logErrors: false,
+                                         block: { () throws -> T in
+
+          let resolvedInstance = parent.resolvedInstances.resolvedInstances
+          parent.resolvedInstances.resolvedInstances = self.resolvedInstances.resolvedInstances
+          defer {
+            parent.resolvedInstances.resolvedInstances = resolvedInstance
+          }
+          do {
+            let resolved = try parent._resolve(key: aKey, builder: builder)
+            self.resolvedInstances.resolvedInstances[aKey] = resolved
+            return resolved
+          } catch {
+            throw error
+          }
+      })
+
+      return resolved
+    }
+
+}
+
 // MARK: - Removing definitions
 
 extension DependencyContainer {
