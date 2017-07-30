@@ -139,6 +139,14 @@ extension DependencyContainer {
       do {
         return try autowire(key: aKey)
       } catch {
+        if let _parent = self.parent
+
+        {
+          if let resolved = try? _parent._resolve(key: aKey, builder: builder) as T{
+            return resolved
+          }
+        }
+
         if let resolved = collaboratingResolve(key: aKey, builder: builder) {
           return resolved
         } else {

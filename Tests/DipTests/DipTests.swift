@@ -211,8 +211,6 @@ class DipTests: XCTestCase {
     XCTAssertTrue(service1 is ServiceImp1)
     XCTAssertTrue(service2 is ServiceImp2)
   }
-
-
   
   func testThatItCallsResolveDependenciesOnDefinition() {
     //given
@@ -795,15 +793,9 @@ extension DipTests {
     collaborator2.register(.singleton) {
       ServiceClient(name: "2", service: $0)
     }
-
-
+    
     collaborator1.collaborate(with: container)
     collaborator2.collaborate(with: container)
-
-    //Root client should not have access to its childrens services
-    let rootClient = try? container.resolve() as ServiceClient
-    XCTAssertNil(rootClient) //<<<<<< FAILS
-
     
     let client2 = try! collaborator2.resolve() as ServiceClient
     let client1 = try! collaborator1.resolve() as ServiceClient

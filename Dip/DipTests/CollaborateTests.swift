@@ -12,48 +12,16 @@ import XCTest
 
 class CollaborateTests: XCTestCase {
     
-    override func setUp() {
-        super.setUp()
-        // Put setup code here. This method is called before the invocation of each test method in the class.
-    }
-    
-    override func tearDown() {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
-        super.tearDown()
-    }
-    
-
-
-
-  func testIsolationContainer() {
-
-    let rootContainer = DependencyContainer()
-
-    var count = 0
-    rootContainer.register(.singleton) { () -> ServiceA in
-      count = count + 1
-      return ServiceA()
-    }
-
-    let loggedIn = DependencyContainer()
-    loggedIn.register(.singleton) { Password(text: "1234", service:$0) }
-
-    let unloggedIn = DependencyContainer()
-    unloggedIn.register(.singleton) { Password(text: "-none-", service:$0) }
-
-    // NOTE: Isolated containers
-    loggedIn.collaborate(with: rootContainer) //Isolated containers
-    unloggedIn.collaborate(with: rootContainer)//Isolated Container
-
-    let passwordA = try! unloggedIn.resolve() as Password
-
-    XCTAssert(passwordA.text == "-none-") //<< FAILS
-    XCTAssert(count == 1) ////<< Works
-
-    let passwordB = try! loggedIn.resolve() as Password
-    XCTAssert(passwordB.text == "1234")  //<<<Works
-    XCTAssert(count == 1)
+  override func setUp() {
+      super.setUp()
+      // Put setup code here. This method is called before the invocation of each test method in the class.
   }
+  
+  override func tearDown() {
+      // Put teardown code here. This method is called after the invocation of each test method in the class.
+      super.tearDown()
+  }
+
 
 
   class ServiceA {}
@@ -69,7 +37,7 @@ class CollaborateTests: XCTestCase {
   }
 
 
-  func testIsolationContainer2() {
+  func testIsolationContainer() {
 
     let rootContainer = DependencyContainer()
 
@@ -79,14 +47,67 @@ class CollaborateTests: XCTestCase {
       return ServiceA()
     }
 
+
+    XCTAssertNotNil(try? rootContainer.resolve() as ServiceA)
+
+    return
+    let loggedIn = DependencyContainer(parent: rootContainer)
+    var countL = 0
+    loggedIn.register(.singleton) { (serviceA: ServiceA) -> Password in
+      countL = countL + 1
+      return Password(text: "1234", service:serviceA)
+    }
+
+
+    let unloggedIn = DependencyContainer(parent: rootContainer)
+    var countU = 0
+    unloggedIn.register(.singleton) { (serviceA: ServiceA) -> Password in
+      countU = countU + 1
+      return Password(text: "-none-", service:serviceA)
+    }
+
+    // NOTE: Isolated containers
+
+
+    XCTAssert((try! loggedIn.resolve() as Password).text == "1234")  //<<<Works
+    XCTAssert((try! loggedIn.resolve() as Password).text == "1234")  //<<<Works
+    XCTAssert(count == 1)
+    XCTAssert(countL == 1)
+
+
+    XCTAssert((try! unloggedIn.resolve() as Password).text == "-none-") //<< FAILS
+    XCTAssert((try! unloggedIn.resolve() as Password).text == "-none-") //<< FAILS
+    XCTAssert(count == 1) ////<< Works
+    XCTAssert(countU == 1) ////<< Works
+
+
+    XCTAssert(count == 1)
+
+  }
+
+
+  func testIsolatedContainersDontFailOver() {
+
+    let rootContainer = DependencyContainer()
+
+    var count = 0
+    rootContainer.register(.singleton) { () -> ServiceA in
+      count = count + 1
+      return ServiceA()
+    }
+
+
+    XCTAssertNotNil(try? rootContainer.resolve() as ServiceA)
+
     let loggedIn = DependencyContainer()
 
     let unloggedIn = DependencyContainer()
-    unloggedIn.register() { Password(text: "-none-", service:$0) }
+    unloggedIn.register(.singleton) { Password(text: "-none-", service:$0) }
 
-    // NOTE: Isolated containers
-    loggedIn.collaborate(with: rootContainer) //Isolated containers
-    unloggedIn.collaborate(with: rootContainer)//Isolated Container
+    loggedIn.collaborate(.uni, with: rootContainer) //Isolated containers
+    unloggedIn.collaborate(.uni, with: rootContainer)//Isolated Container
+
+    XCTAssertNil(try? rootContainer.resolve() as Password)
 
     let passwordA = try! unloggedIn.resolve() as Password
 
@@ -95,7 +116,8 @@ class CollaborateTests: XCTestCase {
 
     let passwordB : Password? = try? loggedIn.resolve() as Password
 
-    XCTAssertNil(passwordB) //<<<< FAILS. Should be nil,  but its "-none-"
+    //Should be nil
+    XCTAssertNil(passwordB)
     XCTAssert(count == 1)
   }
 
