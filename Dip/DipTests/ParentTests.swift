@@ -36,13 +36,16 @@ class CollaborateTests: XCTestCase {
   }
 
 
-  func testIsolationContainer() {
+  /* 
+ *  Child containers should not have access to each others registries
+ */
+  func testChildContainersAreIsolatedContainer() {
 
     let rootContainer = DependencyContainer()
 
-    var count = 0
+    var countR = 0
     rootContainer.register(.singleton) { () -> ServiceA in
-      count = count + 1
+      countR = countR + 1
       return ServiceA()
     }
 
@@ -63,23 +66,23 @@ class CollaborateTests: XCTestCase {
       return Password(text: "-none-", service:serviceA)
     }
 
-    XCTAssert((try! loggedIn.resolve() as Password).text == "1234")  //<<<Works
-    XCTAssert((try! loggedIn.resolve() as Password).text == "1234")  //<<<Works
-    XCTAssert(count == 1)
+    XCTAssert((try! loggedIn.resolve() as Password).text == "1234")
+    XCTAssert(countR == 1)
     XCTAssert(countL == 1)
 
 
-    XCTAssert((try! unloggedIn.resolve() as Password).text == "-none-") //<< FAILS
-    XCTAssert((try! unloggedIn.resolve() as Password).text == "-none-") //<< FAILS
-    XCTAssert(count == 1) ////<< Works
-    XCTAssert(countU == 1) ////<< Works
-
-
+    XCTAssert((try! unloggedIn.resolve() as Password).text == "-none-")
+    XCTAssert(countR == 1)
+    XCTAssert(countU == 1)
 
   }
 
 
-  func testIsolatedContainersDontFailOver() {
+  /*
+ * Child containers should not have access to each others registries
+ *  nor should the parent have access to the childs registry
+ */
+  func testChildContainersDontFailOver() {
 
     let rootContainer = DependencyContainer()
 
@@ -89,25 +92,22 @@ class CollaborateTests: XCTestCase {
       return ServiceA()
     }
 
-    XCTAssertNotNil(try? rootContainer.resolve() as ServiceA)
-
+    //Unlogged in user.
     let unloggedIn = DependencyContainer(parent: rootContainer)
     unloggedIn.register(.singleton) { Password(text: "-none-", service:$0) }
-
-    XCTAssertNil(try? rootContainer.resolve() as Password)
-
     let passwordA = try? unloggedIn.resolve() as Password
-
     XCTAssert(passwordA?.text == "-none-")
     XCTAssert(count == 1)
 
+
+    //Logged in user doesn't have access to Unlogged in users data.
     let loggedIn = DependencyContainer(parent: rootContainer)
-
     let passwordB : Password? = try? loggedIn.resolve() as Password
-
-    //Should be nil
     XCTAssertNil(passwordB)
     XCTAssert(count == 1)
+
+    //Root container doesn't have access to child containers data.
+    XCTAssertNil(try? rootContainer.resolve() as Password)
   }
 
 
@@ -129,6 +129,7 @@ class CollaborateTests: XCTestCase {
     }
   }
 
+  //Instances of that are resolved from parents are reused similar to how they're reused within containers and collaborators.
   func testParentContainersReuseInstances() {
     let rootContainer = DependencyContainer()
 
