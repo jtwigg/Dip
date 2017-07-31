@@ -126,7 +126,7 @@ extension DependencyContainer {
   func _resolve<U>(type aType: Any.Type, tag: DependencyTagConvertible? = nil, builder: ((U) throws -> Any) throws -> Any) throws -> Any {
     let key = DefinitionKey(type: aType, typeOfArguments: U.self, tag: tag?.dependencyTag)
     
-    return try inContext(key:key, injectedInType: context?.resolvingType) {
+    return try inContext(key:key, injectedInType: context?.resolvingType, container: self) {
       try self._resolve(key: key, builder: { definition in
         try builder(definition.weakFactory)
       })

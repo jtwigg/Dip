@@ -9,6 +9,7 @@
 import XCTest
 @testable import Dip
 
+protocol Servicable {}
 
 class CollaborateTests: XCTestCase {
     
@@ -238,8 +239,9 @@ class CollaborateTests: XCTestCase {
   func testResolutionCollision() {
 
     let levelOneContainer = DependencyContainer()
-    levelOneContainer.register {
-      LevelOne(title:"LevelOne")
+    levelOneContainer.register { () -> LevelOne in
+      XCTFail("Should not rertrieve")
+      return LevelOne(title:"LevelOne")
     }
 
     let levelTwoContainer = DependencyContainer(parent: levelOneContainer)
@@ -268,6 +270,110 @@ class CollaborateTests: XCTestCase {
 
     XCTAssert(levelThreeAggregate.levelOne === levelThreeAggregate.levelThree.levelTwo.levelOne)
     XCTAssert(levelThreeAggregate.levelOne.title == "LevelThree")
+  }
+
+  class LevelThreeInjected {
+    let levelThree : LevelThree
+    let levelOne = Injected<LevelOne>()
+
+    init(levelThree: LevelThree) {
+      self.levelThree = levelThree
+    }
+  }
+
+  //Injected properties too
+  func testInjectionProperties() {
+    let levelOneContainer = DependencyContainer()
+    levelOneContainer.register { () -> LevelOne in
+      XCTFail("Should not rertrieve")
+      return LevelOne(title:"LevelOne")
+    }
+
+    let levelTwoContainer = DependencyContainer(parent: levelOneContainer)
+    levelTwoContainer.register {
+      LevelTwo(levelOne: $0)
+    }
+
+    let levelThreeContainer = DependencyContainer(parent: levelTwoContainer)
+    levelThreeContainer.register {
+      LevelThree(levelTwo: $0)
+      }.resolvingProperties { (container, levelThreeContainer) -> () in
+        levelThreeContainer.anotherLevelTwo = try? container.resolve() as LevelTwo
+    }
+    levelThreeContainer.register {
+      LevelOne(title:"LevelThree")
+    }
+
+    levelThreeContainer.register {
+      LevelThreeInjected(levelThree: $0)
+    }
+
+    guard let levelThreeInjected = try? levelThreeContainer.resolve() as LevelThreeInjected else {
+      XCTFail("Nil returned from level three aggregate resolve")
+      return
+    }
+
+    XCTAssert(levelThreeInjected.levelOne.value?.title  == "LevelThree")
+    XCTAssert(levelThreeInjected.levelThree.levelTwo.levelOne === levelThreeInjected.levelOne.value)
+  }
+
+
+
+
+  class DependancyA : Servicable{}
+  class DependancyB : Servicable{}
+
+  class ConcreteA {
+    let servicable = Injected<Servicable>()
+  }
+
+  class ConcreteB {
+    let servicable : Servicable
+
+    init(servicable : Servicable) {
+      self.servicable = servicable
+    }
+  }
+
+  func testProtocolForwardingCapturesCorrectly() {
+
+    let rootContainer = DependencyContainer()
+    rootContainer.register { () -> DependancyA in
+      DependancyA()
+    }.implements(Servicable.self)
+
+    rootContainer.register { () -> ConcreteA in
+      ConcreteA()
+    }
+
+    let childContainer = DependencyContainer(parent: rootContainer)
+
+    childContainer.register { () -> DependancyB in
+      DependancyB()
+    }.implements(Servicable.self)
+
+    childContainer.register(factory: ConcreteB.init)
+
+    //Test Child
+    var concreteA: ConcreteA? = try? childContainer.resolve()
+    XCTAssertNotNil(concreteA)
+    XCTAssertNotNil(concreteA?.servicable.value as? DependancyB)
+
+    var concreteB: ConcreteB? = try? childContainer.resolve()
+    XCTAssertNotNil(concreteB)
+    XCTAssertNotNil(concreteB?.servicable as? DependancyB)
+
+
+    //Test Rpot
+    concreteA = try? rootContainer.resolve()
+    XCTAssertNotNil(concreteA)
+    XCTAssertNotNil(concreteA?.servicable.value as? DependancyA)
+
+    concreteB = try? rootContainer.resolve()
+    XCTAssertNil(concreteB)
+
+
+    XCTAssertNoThrow(try childContainer.validate())
   }
 
 }

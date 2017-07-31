@@ -169,16 +169,20 @@ extension DependencyContainer {
     
     /// The label of the property where resolved instance will be auto-injected.
     private(set) public var injectedInProperty: String?
+
+    /// The Container that triggered the initial resolve
+    private(set) public var container: DependencyContainer
     
     let inCollaboration: Bool
     
     var logErrors: Bool = true
     
-    init(key: DefinitionKey, injectedInType: Any.Type?, injectedInProperty: String?, inCollaboration: Bool) {
+    init(key: DefinitionKey, injectedInType: Any.Type?, injectedInProperty: String?, inCollaboration: Bool, container: DependencyContainer) {
       self.key = key
       self.injectedInType = injectedInType
       self.injectedInProperty = injectedInProperty
       self.inCollaboration = inCollaboration
+      self.container = container
     }
     
     public var debugDescription: String {
@@ -202,7 +206,7 @@ extension DependencyContainer {
 
   /// Pushes new context created with provided values and calls block. When block returns previous context is restored.
   /// When popped to initial (root) context will release all references to resolved instances and call `Resolvable` callbacks.
-  func inContext<T>(key aKey: DefinitionKey, injectedInType: Any.Type?, injectedInProperty: String? = nil, inCollaboration: Bool = false, container: DependencyContainer? = nil, logErrors: Bool! = nil, block: () throws -> T) rethrows -> T {
+  func inContext<T>(key aKey: DefinitionKey, injectedInType: Any.Type?, injectedInProperty: String? = nil, inCollaboration: Bool = false, container: DependencyContainer, logErrors: Bool! = nil, block: () throws -> T) rethrows -> T {
     let key = aKey
     return try threadSafe {
       let currentContext = self.context
@@ -233,7 +237,8 @@ extension DependencyContainer {
         key: key,
         injectedInType: injectedInType,
         injectedInProperty: injectedInProperty,
-        inCollaboration: inCollaboration
+        inCollaboration: inCollaboration,
+        container: container
       )
       context.logErrors = logErrors ?? currentContext?.logErrors ?? true
       
@@ -332,8 +337,9 @@ extension DependencyContainer {
             collaborator.resolvedInstances.resolvedInstances[aKey] = resolved
           }
         }
-        
-        let resolved = try collaborator.inContext(key:key, injectedInType: self.context.injectedInType, injectedInProperty: self.context.injectedInProperty, inCollaboration: true, logErrors: false) {
+
+
+        let resolved = try collaborator.inContext(key:key, injectedInType: self.context.injectedInType, injectedInProperty: self.context.injectedInProperty, inCollaboration: true, container: self.context.container, logErrors: false) {
           try collaborator._resolve(key: key, builder: builder)
         }
 
@@ -360,7 +366,8 @@ extension DependencyContainer {
     let resolved = try? parent.inContext(key:aKey,
                                          injectedInType: self.context.injectedInType,
                                          injectedInProperty: self.context.injectedInProperty,
-                                         inCollaboration: false,
+                                         inCollaboration: self.context.inCollaboration,
+                                         container: self.context.container,
                                          logErrors: false,
                                          block: { () throws -> T in
 
@@ -389,7 +396,6 @@ extension DependencyContainer {
 
       return resolved
     }
-
 }
 
 // MARK: - Removing definitions
@@ -467,7 +473,7 @@ extension DependencyContainer {
         for argumentsSet in arguments {
           guard type(of: argumentsSet) == key.typeOfArguments else { continue }
           do {
-            let _ = try inContext(key:key, injectedInType: nil) {
+            let _ = try inContext(key:key, injectedInType: nil, container: self) {
               try self._resolve(key: key, builder: { definition throws -> Any in
                 try definition.weakFactory(argumentsSet)
               })
