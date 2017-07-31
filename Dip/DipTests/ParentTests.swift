@@ -11,7 +11,7 @@ import XCTest
 
 protocol Servicable {}
 
-class CollaborateTests: XCTestCase {
+class ParentTests: XCTestCase {
     
   override func setUp() {
       super.setUp()
@@ -40,7 +40,7 @@ class CollaborateTests: XCTestCase {
   /* 
  *  Child containers should not have access to each others registries
  */
-  func testChildContainersAreIsolatedContainer() {
+  func testChildContainersAreIsolatedFromEachOther() {
 
     let rootContainer = DependencyContainer()
 
@@ -194,11 +194,11 @@ class CollaborateTests: XCTestCase {
   }
 
 
-  func testTwoParentHierachy() {
+  func testTwoParentInHierachyStillReusesInstances() {
 
     let levelOneContainer = DependencyContainer()
     levelOneContainer.register {
-      LevelOne(title: "LevelOne")
+      LevelOne(title: "OccuresInLevelOne")
     }
 
     let levelTwoContainer = DependencyContainer(parent: levelOneContainer)
@@ -222,6 +222,7 @@ class CollaborateTests: XCTestCase {
     XCTAssertNotNil(levelThree.anotherLevelTwo)
     XCTAssert(levelThree.levelTwo === levelThree.anotherLevelTwo)
     XCTAssert(levelThree.levelTwo.levelOne === levelThree.anotherLevelTwo?.levelOne)
+    XCTAssert(levelThree.levelTwo.levelOne.title == "OccuresInLevelOne")
   }
 
   class LevelThreeAggregate {
@@ -236,12 +237,12 @@ class CollaborateTests: XCTestCase {
   }
 
   //Resolving Containers that are overriden by a child, should use the childs implementation.
-  func testResolutionCollision() {
+  func testOverridingInChildContainerIsCapturedandReused() {
 
     let levelOneContainer = DependencyContainer()
     levelOneContainer.register { () -> LevelOne in
       XCTFail("Should not rertrieve")
-      return LevelOne(title:"LevelOne")
+      return LevelOne(title:"OccursInLevelOne")
     }
 
     let levelTwoContainer = DependencyContainer(parent: levelOneContainer)
@@ -256,7 +257,7 @@ class CollaborateTests: XCTestCase {
         levelThreeContainer.anotherLevelTwo = try? container.resolve() as LevelTwo
     }
     levelThreeContainer.register {
-      LevelOne(title:"LevelThree")
+      LevelOne(title:"OccuresInLevelThree")
     }
 
     levelThreeContainer.register {
@@ -269,7 +270,7 @@ class CollaborateTests: XCTestCase {
     }
 
     XCTAssert(levelThreeAggregate.levelOne === levelThreeAggregate.levelThree.levelTwo.levelOne)
-    XCTAssert(levelThreeAggregate.levelOne.title == "LevelThree")
+    XCTAssert(levelThreeAggregate.levelOne.title == "OccuresInLevelThree")
   }
 
   class LevelThreeInjected {
@@ -282,11 +283,11 @@ class CollaborateTests: XCTestCase {
   }
 
   //Injected properties are captured and overridden by child classes when appropriate.
-  func testInjectionProperties() {
+  func testOverridingInjectionProperties() {
     let levelOneContainer = DependencyContainer()
     levelOneContainer.register { () -> LevelOne in
-      XCTFail("Should not rertrieve")
-      return LevelOne(title:"LevelOne")
+      XCTFail("Should not retrieve")
+      return LevelOne(title:"OccuresInLevelOne")
     }
 
     let levelTwoContainer = DependencyContainer(parent: levelOneContainer)
@@ -301,7 +302,7 @@ class CollaborateTests: XCTestCase {
         levelThreeContainer.anotherLevelTwo = try? container.resolve() as LevelTwo
     }
     levelThreeContainer.register {
-      LevelOne(title:"LevelThree")
+      LevelOne(title:"OccuresInLevelThree")
     }
 
     levelThreeContainer.register {
@@ -313,7 +314,7 @@ class CollaborateTests: XCTestCase {
       return
     }
 
-    XCTAssert(levelThreeInjected.levelOne.value?.title  == "LevelThree")
+    XCTAssert(levelThreeInjected.levelOne.value?.title  == "OccuresInLevelThree")
     XCTAssert(levelThreeInjected.levelThree.levelTwo.levelOne === levelThreeInjected.levelOne.value)
   }
 
@@ -334,7 +335,7 @@ class CollaborateTests: XCTestCase {
   }
 
   //Protocol forwarding can be  overriden by children.
-  func testProtocolForwardingCapturesCorrectly() {
+  func testOverridingProtocolForwardingIsCapturedCorrectly() {
 
     let rootContainer = DependencyContainer()
     rootContainer.register { () -> DependancyA in
