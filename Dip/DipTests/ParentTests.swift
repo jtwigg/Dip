@@ -281,7 +281,7 @@ class CollaborateTests: XCTestCase {
     }
   }
 
-  //Injected properties too
+  //Injected properties are captured and overridden by child classes when appropriate.
   func testInjectionProperties() {
     let levelOneContainer = DependencyContainer()
     levelOneContainer.register { () -> LevelOne in
@@ -335,6 +335,7 @@ class CollaborateTests: XCTestCase {
     }
   }
 
+  //Protocol forwarding is overriden by children.
   func testProtocolForwardingCapturesCorrectly() {
 
     let rootContainer = DependencyContainer()
@@ -359,7 +360,7 @@ class CollaborateTests: XCTestCase {
     XCTAssertNotNil(concreteA)
     XCTAssertNotNil(concreteA?.servicable.value as? DependancyB)
 
-    var concreteB: ConcreteB? = try? childContainer.resolve()
+    let concreteB: ConcreteB? = try? childContainer.resolve()
     XCTAssertNotNil(concreteB)
     XCTAssertNotNil(concreteB?.servicable as? DependancyB)
 
@@ -367,13 +368,13 @@ class CollaborateTests: XCTestCase {
     //Test Rpot
     concreteA = try? rootContainer.resolve()
     XCTAssertNotNil(concreteA)
-    XCTAssertNotNil(concreteA?.servicable.value as? DependancyA)
+    XCTAssertNotNil(concreteA?.servicable.value as? DependancyA)//Not root still references DependancyA
 
-    concreteB = try? rootContainer.resolve()
-    XCTAssertNil(concreteB)
+    //Root container should not have access to dependancies registered in children
+    XCTAssertNil(try? rootContainer.resolve())
+    XCTAssertNil(try? rootContainer.resolve() as DependancyB)
 
 
     XCTAssertNoThrow(try childContainer.validate())
   }
-
 }
