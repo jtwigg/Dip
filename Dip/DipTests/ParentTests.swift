@@ -318,8 +318,6 @@ class CollaborateTests: XCTestCase {
   }
 
 
-
-
   class DependancyA : Servicable{}
   class DependancyB : Servicable{}
 
@@ -335,7 +333,7 @@ class CollaborateTests: XCTestCase {
     }
   }
 
-  //Protocol forwarding is overriden by children.
+  //Protocol forwarding can be  overriden by children.
   func testProtocolForwardingCapturesCorrectly() {
 
     let rootContainer = DependencyContainer()
@@ -356,19 +354,21 @@ class CollaborateTests: XCTestCase {
     childContainer.register(factory: ConcreteB.init)
 
     //Test Child
+    //Resolving with the child should always use overridden values.
     var concreteA: ConcreteA? = try? childContainer.resolve()
     XCTAssertNotNil(concreteA)
     XCTAssertNotNil(concreteA?.servicable.value as? DependancyB)
 
     let concreteB: ConcreteB? = try? childContainer.resolve()
     XCTAssertNotNil(concreteB)
-    XCTAssertNotNil(concreteB?.servicable as? DependancyB)
+    XCTAssertNotNil(concreteB?.servicable as? DependancyB) //Overridden
 
 
     //Test Rpot
+    //REsolving directly to the root should only access classes its registered with.
     concreteA = try? rootContainer.resolve()
     XCTAssertNotNil(concreteA)
-    XCTAssertNotNil(concreteA?.servicable.value as? DependancyA)//Not root still references DependancyA
+    XCTAssertNotNil(concreteA?.servicable.value as? DependancyA)//Note: root still references DependancyA
 
     //Root container should not have access to dependancies registered in children
     XCTAssertNil(try? rootContainer.resolve())
@@ -377,4 +377,5 @@ class CollaborateTests: XCTestCase {
 
     XCTAssertNoThrow(try childContainer.validate())
   }
+
 }
