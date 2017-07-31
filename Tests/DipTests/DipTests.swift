@@ -855,7 +855,7 @@ extension DipTests {
     let client2 = try! collaborator2.resolve() as Dependancy
 
     XCTAssertNotNil(client1.service as? ServiceImp1)
-    XCTAssertNotNil(client2.service as? ServiceImp1)
+    XCTAssertNotNil(client2.service as? ServiceImp2)
 
     let service1 = try! collaborator1.resolve() as Service
     let service2 = try! collaborator2.resolve() as Service
