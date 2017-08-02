@@ -1,5 +1,5 @@
 //
-//  CollaborateTests.swift
+//  ParentTests.swift
 //  Dip
 //
 //  Created by John Twigg on 7/28/17.
@@ -37,9 +37,10 @@ class ParentTests: XCTestCase {
   }
 
 
-  /* 
- *  Child containers should not have access to each others registries
- */
+  /**
+    Child containers should not have access to each others registries
+    Root containers don't have access to their childrens registries either
+   */
   func testChildContainersAreIsolatedFromEachOther() {
 
     let rootContainer = DependencyContainer()
@@ -81,10 +82,10 @@ class ParentTests: XCTestCase {
   }
 
 
-  /*
- * Child containers should not have access to each others registries
- *  nor should the parent have access to the childs registry
- */
+  /**
+    Child containers should not have access to each others registries
+    neven when they will fail to resolve
+   */
   func testChildContainersDontFailOver() {
 
     let rootContainer = DependencyContainer()
@@ -131,9 +132,9 @@ class ParentTests: XCTestCase {
     }
   }
 
- /*
- * Instances of that are resolved from parents are reused similar 
- * to how they're reused within containers and collaborators.
+/**
+  Instances of that are resolved from parents are reused during
+  the same call resolve context.
  */
   func testParentContainersReuseInstances() {
     let rootContainer = DependencyContainer()
@@ -221,7 +222,7 @@ class ParentTests: XCTestCase {
 
     XCTAssertNotNil(levelThree.anotherLevelTwo)
     XCTAssert(levelThree.levelTwo === levelThree.anotherLevelTwo)
-    XCTAssert(levelThree.levelTwo.levelOne === levelThree.anotherLevelTwo?.levelOne)
+    XCTAssert(levelThree.levelTwo.levelOne === levelThree.anotherLevelTwo?.levelOne, "The levelOne object should have been reused")
     XCTAssert(levelThree.levelTwo.levelOne.title == "OccuresInLevelOne")
   }
 
@@ -236,12 +237,15 @@ class ParentTests: XCTestCase {
     }
   }
 
-  //Resolving Containers that are overriden by a child, should use the childs implementation.
+  /**
+     Resolving Containers that are overriden by a child, should use the childs implementation,
+     even when the the autoresolve occurs from a parent container
+   */
   func testOverridingInChildContainerIsCapturedandReused() {
 
     let levelOneContainer = DependencyContainer()
     levelOneContainer.register { () -> LevelOne in
-      XCTFail("Should not rertrieve")
+      XCTFail("Should not retrieve")
       return LevelOne(title:"OccursInLevelOne")
     }
 
@@ -282,7 +286,11 @@ class ParentTests: XCTestCase {
     }
   }
 
-  //Injected properties are captured and overridden by child classes when appropriate.
+
+
+  /**
+   Injected properties are captured and overridden by child classes when appropriate.
+   */
   func testOverridingInjectionProperties() {
     let levelOneContainer = DependencyContainer()
     levelOneContainer.register { () -> LevelOne in
@@ -334,7 +342,10 @@ class ParentTests: XCTestCase {
     }
   }
 
-  //Protocol forwarding can be  overriden by children.
+
+  /**
+   Protocol forwarding can be  overriden by children.
+   */
   func testOverridingProtocolForwardingIsCapturedCorrectly() {
 
     let rootContainer = DependencyContainer()
