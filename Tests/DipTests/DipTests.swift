@@ -839,6 +839,10 @@ extension DipTests {
   }
 
 
+/**
+   Test when dependancies are registered in two collaborating containers
+   the container performing the resolve has priority. 
+ */
   func testOverridenRegistry() {
     let collaborator1 = DependencyContainer()
     collaborator1.register { ServiceImp1() as Service}
