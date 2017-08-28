@@ -182,12 +182,14 @@ class ParentTests: XCTestCase {
   class LevelTwo : Resolvable{
     let levelOne : LevelOne
     var resolvedInjectedContainer : DependencyContainer?
+    var resolveCount = 0
 
     init(levelOne : LevelOne ){
       self.levelOne = levelOne
     }
 
     func resolveDependencies(_ container: DependencyContainer){
+      resolveCount = resolveCount + 1
       resolvedInjectedContainer = container
     }
   }
@@ -449,6 +451,7 @@ class ParentTests: XCTestCase {
       "OccursInLevelThree"
     }
 
+  
 
     let levelTwo = try? levelThreeContainer.resolve() as LevelTwo
     XCTAssertNotNil(levelTwo)
@@ -461,11 +464,12 @@ class ParentTests: XCTestCase {
     guard let levelTwoInjected = try? levelThreeContainer.resolve() as LevelTwoInjected else {
       XCTFail("Failed to create LevelTwoInjected")
       return
-    }
+  }
 
     XCTAssertTrue(levelTwoInjected.levelOne.containerUsedInResolve === levelThreeContainer)
 
   }
+
 
 
   class WireFrame {
@@ -529,8 +533,53 @@ class ParentTests: XCTestCase {
       return
     }
     XCTAssert(wireFrame.presenter.wireFrame === wireFrame)
-    XCTAssert(count == 2)
+    XCTAssert(count == 1)
     XCTAssertEqual("Title:1", wireFrame.title)
   }
+
+
+
+  func testOnlyResolveOnceWhenResolvedByChild(){
+
+    var count = 0
+    let rootContainer = DependencyContainer()
+    rootContainer.register { () -> LevelOne in
+      count = count + 1
+      return LevelOne(title: "OccursInRoot")
+    }
+
+    let childContainer = DependencyContainer(parent: rootContainer)
+    childContainer.register { (instanceOne : LevelOne, instanceTwo : LevelOne) -> LevelTwo in
+      XCTAssert(instanceOne === instanceTwo)
+      return LevelTwo(levelOne: instanceOne)
+    }
+
+    let levelTwo : LevelTwo? = try? childContainer.resolve()
+    XCTAssertNotNil(levelTwo)
+    XCTAssertEqual(count, 1)
+    XCTAssertEqual(levelTwo?.resolveCount, 1)
+  }
+
+  func testOnlyResolveOnceWhenResolvedByParent() {
+
+    var count = 0
+    let rootContainer = DependencyContainer()
+    rootContainer.register { () -> LevelOne in
+      count = count + 1
+      return LevelOne(title: "OccursInRoot")
+    }
+
+    rootContainer.register { (instanceOne : LevelOne, instanceTwo : LevelOne) -> LevelTwo in
+      XCTAssert(instanceOne === instanceTwo)
+      return LevelTwo(levelOne: instanceOne)
+    }
+
+    let childContainer = DependencyContainer(parent: rootContainer)
+    let levelTwo : LevelTwo? = try? childContainer.resolve()
+    XCTAssertNotNil(levelTwo)
+    XCTAssertEqual(count, 1)
+    XCTAssertEqual(levelTwo?.resolveCount, 1)
+  }
+  
 
 }
