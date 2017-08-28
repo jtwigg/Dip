@@ -179,16 +179,24 @@ class ParentTests: XCTestCase {
 
   }
 
-  class LevelTwo {
+  class LevelTwo : Resolvable{
     let levelOne : LevelOne
+    var resolvedInjectedContainer : DependencyContainer?
+
     init(levelOne : LevelOne ){
       self.levelOne = levelOne
+    }
+
+    func resolveDependencies(_ container: DependencyContainer){
+      resolvedInjectedContainer = container
     }
   }
 
   class LevelThree {
     let levelTwo : LevelTwo
     var anotherLevelTwo : LevelTwo?
+
+
     init(levelTwo : LevelTwo ){
       self.levelTwo = levelTwo
     }
@@ -301,6 +309,9 @@ class ParentTests: XCTestCase {
     let levelTwoContainer = DependencyContainer(parent: levelOneContainer)
     levelTwoContainer.register {
       LevelTwo(levelOne: $0)
+    }.resolvingProperties { (container, levelTwo) -> () in
+      let levelOne = try container.resolve() as LevelOne
+      XCTAssert(levelOne === levelTwo.levelOne)
     }
 
     let levelThreeContainer = DependencyContainer(parent: levelTwoContainer)
@@ -342,9 +353,8 @@ class ParentTests: XCTestCase {
     }
   }
 
-
   /**
-   Protocol forwarding can be  overriden by children.
+   Protocol forwarding can be overriden by children.
    */
   func testOverridingProtocolForwardingIsCapturedCorrectly() {
 
@@ -388,6 +398,73 @@ class ParentTests: XCTestCase {
 
 
     XCTAssertNoThrow(try childContainer.validate())
+  }
+
+  class TestInjected<T> : AutoInjectedPropertyBox {
+    ///The type of wrapped property.
+    public static var wrappedType: Any.Type {
+      return T.self
+    }
+
+    var containerUsedInResolve : DependencyContainer?
+
+    func resolve(_ container: DependencyContainer) throws {
+      containerUsedInResolve = container
+    }
+  }
+
+  class LevelTwoInjected {
+    let levelOne = TestInjected<LevelOne>()
+  }
+  
+
+  /**
+  * Ensure that when a container itself is used as an implicit dependency it
+  * injects the container that initiated the resolve() call. Additionally ensure that the resolving container
+  * is passed in during calls to Resolvable protocols, resolveProperties { ... } invocations and Injected<T> properties
+  */
+  func testContainerAsDependenciesAlwaysUsesResolvingContainer(){
+
+    var levelThreeContainer : DependencyContainer!
+
+    let levelOneContainer = DependencyContainer()
+    levelOneContainer.register { (container:DependencyContainer) -> LevelOne in
+      XCTAssert(levelThreeContainer === container)
+      return LevelOne(title:try container.resolve())
+    }
+
+    let levelTwoContainer = DependencyContainer(parent: levelOneContainer)
+    levelTwoContainer.register { (container:DependencyContainer) in
+      XCTAssert(levelThreeContainer === container)
+      return LevelTwo(levelOne: try container.resolve())
+    }.resolvingProperties { (container:DependencyContainer, levelTwo:LevelTwo) in
+      XCTAssert(levelThreeContainer === container)
+      XCTAssert(levelTwo.levelOne === (try container.resolve() as LevelOne))
+    }
+
+    levelTwoContainer.register { LevelTwoInjected() }
+
+    levelThreeContainer = DependencyContainer(parent: levelTwoContainer)
+    levelThreeContainer.register {
+      "OccursInLevelThree"
+    }
+
+
+    let levelTwo = try? levelThreeContainer.resolve() as LevelTwo
+    XCTAssertNotNil(levelTwo)
+    XCTAssert(levelTwo?.levelOne.title == "OccursInLevelThree")
+
+    XCTAssertNotNil(levelTwo?.resolvedInjectedContainer)
+    XCTAssert(levelThreeContainer === levelTwo?.resolvedInjectedContainer)
+
+
+    guard let levelTwoInjected = try? levelThreeContainer.resolve() as LevelTwoInjected else {
+      XCTFail("Failed to create LevelTwoInjected")
+      return
+    }
+
+    XCTAssertTrue(levelTwoInjected.levelOne.containerUsedInResolve === levelThreeContainer)
+
   }
 
 }
