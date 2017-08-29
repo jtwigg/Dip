@@ -135,6 +135,11 @@ extension DependencyContainer {
   
   /// Lookup definition by the key and use it to resolve instance. Fallback to the key with `nil` tag.
   func _resolve<T>(key aKey: DefinitionKey, builder: (_Definition) throws -> T) throws -> T {
+
+    if aKey.type == DependencyContainer.self {
+      return (context.inCollaboration ? self : context.container) as! T
+    }
+
     guard let matching = self.definition(matching: aKey) else {
       do {
         return try autowire(key: aKey)
@@ -193,11 +198,11 @@ extension DependencyContainer {
     
     if let resolvable = resolvedInstance as? Resolvable {
       resolvedInstances.resolvableInstances.append(resolvable)
-      resolvable.resolveDependencies(self)
+      resolvable.resolveDependencies(context.inCollaboration ? self : context.container)
     }
     
     try autoInjectProperties(in: resolvedInstance)
-    try definition.resolveProperties(of: resolvedInstance, container: self)
+    try definition.resolveProperties(of: resolvedInstance, container: context.inCollaboration ? self : context.container)
     
     log(level: .Verbose, "Resolved type \(key.type) with \(resolvedInstance)")
     return resolvedInstance
