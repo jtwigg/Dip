@@ -539,7 +539,11 @@ class ParentTests: XCTestCase {
 
 
 
-  func testOnlyResolveOnceWhenResolvedByChild(){
+ /**
+ *  Esnure that once instance of the class is constructed when the class is 
+ *  registered in the child container.
+ */
+  func testOnlyConstructOnceWhenRegisteredInChildContainer(){
 
     var count = 0
     let rootContainer = DependencyContainer()
@@ -560,7 +564,12 @@ class ParentTests: XCTestCase {
     XCTAssertEqual(levelTwo?.resolveCount, 1)
   }
 
-  func testOnlyResolveOnceWhenResolvedByParent() {
+  /**
+   *  Esnure that once instance of the class is constructed when the class is
+   *  registered in the Parent container.
+   */
+
+  func testOnlyConstructOnceWhenRegisteredInParentContainer() {
 
     var count = 0
     let rootContainer = DependencyContainer()
