@@ -535,8 +535,6 @@ class ParentTests: XCTestCase {
     XCTAssertEqual("Title:1", wireFrame.title)
   }
 
-
-
  /**
  *  Esnure that once instance of the class is constructed when the class is 
  *  registered in the child container.
@@ -587,6 +585,4 @@ class ParentTests: XCTestCase {
     XCTAssertEqual(count, 1)
     XCTAssertEqual(levelTwo?.resolveCount, 1)
   }
-  
-
 }
