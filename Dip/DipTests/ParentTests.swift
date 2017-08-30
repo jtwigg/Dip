@@ -499,7 +499,6 @@ class ParentTests: XCTestCase {
   * Attempting to resolve from a child container may be resolved in a parent container several time.
   * This value should be reused where appropriate.
   */
-
   func testReusedDependenciesFoundInParentContainers() {
 
     let container = DependencyContainer()
@@ -535,11 +534,11 @@ class ParentTests: XCTestCase {
     XCTAssertEqual("Title:1", wireFrame.title)
   }
 
- /**
- *  Esnure that once instance of the class is constructed when the class is 
- *  registered in the child container.
- */
-  func testOnlyConstructOnceWhenRegisteredInChildContainer(){
+  /**
+  *  Esnure that once instance of the class is constructed when the class is 
+  *  registered in the child container.
+  */
+  func testOnlyConstructOnceWhenRegisteredInChildContainer() {
 
     var count = 0
     let rootContainer = DependencyContainer()
@@ -561,10 +560,9 @@ class ParentTests: XCTestCase {
   }
 
   /**
-   *  Esnure that once instance of the class is constructed when the class is
-   *  registered in the Parent container.
-   */
-
+  *  Esnure that once instance of the class is constructed when the class is
+  *  registered in the Parent container.
+  */
   func testOnlyConstructOnceWhenRegisteredInParentContainer() {
 
     var count = 0
