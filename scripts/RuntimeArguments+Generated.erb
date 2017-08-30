@@ -44,9 +44,9 @@ extension DependencyContainer {
                                           type: T.Type = T.self,
                                           tag: DependencyTagConvertible? = nil,
                                           factory: @escaping (<%= arg_tuples %>) throws -> T) -> Definition<T, (<%= arg_tuples %>)> {
-        var definition : Definition<T, (<%= arg_tuples %>)>!
+        weak var definitionWeak : Definition<T, (<%= arg_tuples %>)>!
 
-        definition = register(scope: scope,
+       let definition = register(scope: scope,
                               type: type,
                               tag: tag,
                               factory: factory,
@@ -56,13 +56,14 @@ extension DependencyContainer {
             let <%= "#{(j+96).chr}" %>: <%= "#{(j+64).chr}" %> = try container.resolve(tag: key.tag)
         <% end %>
         
-            if let previouslyResolved: T = container.previouslyResolved(for: definition, key: key) {
+            if let definition = definitionWeak, let previouslyResolved: T = container.previouslyResolved(for: definition, key: key) {
                 return previouslyResolved
             }
 
             return try factory(<%= arg_tuples_lowercase %>)
         }
 
+        definitionWeak = definition
         return definition
     }
 

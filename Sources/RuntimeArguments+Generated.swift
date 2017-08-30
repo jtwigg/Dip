@@ -24,23 +24,24 @@ extension DependencyContainer {
                                type: T.Type = T.self,
                                tag: DependencyTagConvertible? = nil,
                                factory: @escaping (A) throws -> T) -> Definition<T, A> {
-        var definition: Definition<T, A>!
+        weak var definitionWeak: Definition<T, A>!
 
-        definition = register(scope: scope,
-                              type: type,
-                              tag: tag,
-                              factory: factory,
-                              numberOfArguments: 1) { container, key in
+        let definition = register(scope: scope,
+                                  type: type,
+                                  tag: tag,
+                                  factory: factory,
+                                  numberOfArguments: 1) { container, key in
 
             let a: A = try container.resolve(tag: key.tag)
 
-            if let previouslyResolved: T = container.previouslyResolved(for: definition, key: key) {
+            if let definition = definitionWeak, let previouslyResolved: T = container.previouslyResolved(for: definition, key: key) {
                 return previouslyResolved
             }
 
             return try factory(a)
         }
 
+        definitionWeak = definition
         return definition
     }
 
@@ -86,24 +87,25 @@ extension DependencyContainer {
                                   type: T.Type = T.self,
                                   tag: DependencyTagConvertible? = nil,
                                   factory: @escaping (A, B) throws -> T) -> Definition<T, (A, B)> {
-        var definition: Definition<T, (A, B)>!
+        weak var definitionWeak: Definition<T, (A, B)>!
 
-        definition = register(scope: scope,
-                              type: type,
-                              tag: tag,
-                              factory: factory,
-                              numberOfArguments: 2) { container, key in
+        let definition = register(scope: scope,
+                                  type: type,
+                                  tag: tag,
+                                  factory: factory,
+                                  numberOfArguments: 2) { container, key in
 
             let a: A = try container.resolve(tag: key.tag)
             let b: B = try container.resolve(tag: key.tag)
 
-            if let previouslyResolved: T = container.previouslyResolved(for: definition, key: key) {
+            if let definition = definitionWeak, let previouslyResolved: T = container.previouslyResolved(for: definition, key: key) {
                 return previouslyResolved
             }
 
             return try factory(a, b)
         }
 
+        definitionWeak = definition
         return definition
     }
 
@@ -126,25 +128,26 @@ extension DependencyContainer {
                                      type: T.Type = T.self,
                                      tag: DependencyTagConvertible? = nil,
                                      factory: @escaping (A, B, C) throws -> T) -> Definition<T, (A, B, C)> {
-        var definition: Definition<T, (A, B, C)>!
+        weak var definitionWeak: Definition<T, (A, B, C)>!
 
-        definition = register(scope: scope,
-                              type: type,
-                              tag: tag,
-                              factory: factory,
-                              numberOfArguments: 3) { container, key in
+        let definition = register(scope: scope,
+                                  type: type,
+                                  tag: tag,
+                                  factory: factory,
+                                  numberOfArguments: 3) { container, key in
 
             let a: A = try container.resolve(tag: key.tag)
             let b: B = try container.resolve(tag: key.tag)
             let c: C = try container.resolve(tag: key.tag)
 
-            if let previouslyResolved: T = container.previouslyResolved(for: definition, key: key) {
+            if let definition = definitionWeak, let previouslyResolved: T = container.previouslyResolved(for: definition, key: key) {
                 return previouslyResolved
             }
 
             return try factory(a, b, c)
         }
 
+        definitionWeak = definition
         return definition
     }
 
@@ -167,26 +170,27 @@ extension DependencyContainer {
                                         type: T.Type = T.self,
                                         tag: DependencyTagConvertible? = nil,
                                         factory: @escaping (A, B, C, D) throws -> T) -> Definition<T, (A, B, C, D)> {
-        var definition: Definition<T, (A, B, C, D)>!
+        weak var definitionWeak: Definition<T, (A, B, C, D)>!
 
-        definition = register(scope: scope,
-                              type: type,
-                              tag: tag,
-                              factory: factory,
-                              numberOfArguments: 4) { container, key in
+        let definition = register(scope: scope,
+                                  type: type,
+                                  tag: tag,
+                                  factory: factory,
+                                  numberOfArguments: 4) { container, key in
 
             let a: A = try container.resolve(tag: key.tag)
             let b: B = try container.resolve(tag: key.tag)
             let c: C = try container.resolve(tag: key.tag)
             let d: D = try container.resolve(tag: key.tag)
 
-            if let previouslyResolved: T = container.previouslyResolved(for: definition, key: key) {
+            if let definition = definitionWeak, let previouslyResolved: T = container.previouslyResolved(for: definition, key: key) {
                 return previouslyResolved
             }
 
             return try factory(a, b, c, d)
         }
 
+        definitionWeak = definition
         return definition
     }
 
@@ -209,13 +213,13 @@ extension DependencyContainer {
                                            type: T.Type = T.self,
                                            tag: DependencyTagConvertible? = nil,
                                            factory: @escaping (A, B, C, D, E) throws -> T) -> Definition<T, (A, B, C, D, E)> {
-        var definition: Definition<T, (A, B, C, D, E)>!
+        weak var definitionWeak: Definition<T, (A, B, C, D, E)>!
 
-        definition = register(scope: scope,
-                              type: type,
-                              tag: tag,
-                              factory: factory,
-                              numberOfArguments: 5) { container, key in
+        let definition = register(scope: scope,
+                                  type: type,
+                                  tag: tag,
+                                  factory: factory,
+                                  numberOfArguments: 5) { container, key in
 
             let a: A = try container.resolve(tag: key.tag)
             let b: B = try container.resolve(tag: key.tag)
@@ -223,13 +227,14 @@ extension DependencyContainer {
             let d: D = try container.resolve(tag: key.tag)
             let e: E = try container.resolve(tag: key.tag)
 
-            if let previouslyResolved: T = container.previouslyResolved(for: definition, key: key) {
+            if let definition = definitionWeak, let previouslyResolved: T = container.previouslyResolved(for: definition, key: key) {
                 return previouslyResolved
             }
 
             return try factory(a, b, c, d, e)
         }
 
+        definitionWeak = definition
         return definition
     }
 
@@ -252,13 +257,13 @@ extension DependencyContainer {
                                               type: T.Type = T.self,
                                               tag: DependencyTagConvertible? = nil,
                                               factory: @escaping (A, B, C, D, E, F) throws -> T) -> Definition<T, (A, B, C, D, E, F)> {
-        var definition: Definition<T, (A, B, C, D, E, F)>!
+        weak var definitionWeak: Definition<T, (A, B, C, D, E, F)>!
 
-        definition = register(scope: scope,
-                              type: type,
-                              tag: tag,
-                              factory: factory,
-                              numberOfArguments: 6) { container, key in
+        let definition = register(scope: scope,
+                                  type: type,
+                                  tag: tag,
+                                  factory: factory,
+                                  numberOfArguments: 6) { container, key in
 
             let a: A = try container.resolve(tag: key.tag)
             let b: B = try container.resolve(tag: key.tag)
@@ -267,13 +272,14 @@ extension DependencyContainer {
             let e: E = try container.resolve(tag: key.tag)
             let f: F = try container.resolve(tag: key.tag)
 
-            if let previouslyResolved: T = container.previouslyResolved(for: definition, key: key) {
+            if let definition = definitionWeak, let previouslyResolved: T = container.previouslyResolved(for: definition, key: key) {
                 return previouslyResolved
             }
 
             return try factory(a, b, c, d, e, f)
         }
 
+        definitionWeak = definition
         return definition
     }
 
