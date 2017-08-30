@@ -1,7 +1,6 @@
 extension DependencyContainer {
   
 <% arg_count = 6 %>
-
 <% (1..arg_count).each do |i| %>
 <%   arg_types = (1..i).map { |n| "arg#{n} " }.join(", ") %>
 <%   arg_param = i == 1 ? "arguments arg1: A" : "arguments arg1: A, " + (2..i).map{ |n| "_ arg#{n}: #{(n+64).chr}" }.join(", ") %>
