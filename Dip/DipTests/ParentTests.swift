@@ -451,7 +451,6 @@ class ParentTests: XCTestCase {
       "OccursInLevelThree"
     }
 
-  
 
     let levelTwo = try? levelThreeContainer.resolve() as LevelTwo
     XCTAssertNotNil(levelTwo)
@@ -464,12 +463,11 @@ class ParentTests: XCTestCase {
     guard let levelTwoInjected = try? levelThreeContainer.resolve() as LevelTwoInjected else {
       XCTFail("Failed to create LevelTwoInjected")
       return
-  }
+    }
 
     XCTAssertTrue(levelTwoInjected.levelOne.containerUsedInResolve === levelThreeContainer)
 
   }
-
 
 
   class WireFrame {
