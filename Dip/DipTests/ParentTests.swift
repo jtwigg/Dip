@@ -467,4 +467,70 @@ class ParentTests: XCTestCase {
 
   }
 
+
+  class WireFrame {
+    let title: String
+    let presenter: Presenter
+    let viewController: ViewController
+
+    init(presenter: Presenter, viewController: ViewController, title: String){
+      self.title = title
+      self.presenter = presenter
+      self.viewController = viewController
+    }
+  }
+
+  class Presenter {
+    var wireFrame:  WireFrame?
+    var viewController : ViewController?
+  }
+
+  class ViewController {
+    let presenter: Presenter
+    init(presenter:Presenter){
+      self.presenter = presenter
+
+    }
+  }
+
+  /**
+  * Attempting to resolve from a child container may be resolved in a parent container several time.
+  * This value should be reused where appropriate.
+  */
+
+  func testReusedDependenciesFoundInParentContainers() {
+
+    let container = DependencyContainer()
+
+    container.register {
+      ViewController(presenter: $0)
+    }
+
+    container.register {
+      Presenter()
+    }.resolvingProperties { (container, presenter) in
+      presenter.viewController = try container.resolve()
+      presenter.wireFrame = try container.resolve()
+    }
+
+    var count = 0
+    container.register { (presenter: Presenter, viewController: ViewController, title: String) -> WireFrame in
+      count = count + 1
+      return WireFrame(presenter: presenter, viewController: viewController, title: "\(title):\(count)") as WireFrame
+    }
+
+    let childContainer = DependencyContainer(parent: container)
+    childContainer.register {
+      "Title"
+    }
+
+    guard let wireFrame = try? childContainer.resolve() as WireFrame else {
+      XCTFail()
+      return
+    }
+    XCTAssert(wireFrame.presenter.wireFrame === wireFrame)
+    XCTAssert(count == 2)
+    XCTAssertEqual("Title:1", wireFrame.title)
+  }
+
 }

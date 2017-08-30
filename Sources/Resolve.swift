@@ -189,7 +189,7 @@ extension DependencyContainer {
     //when builder calls factory it will in turn resolve sub-dependencies (if there are any)
     //when it returns instance that we try to resolve here can be already resolved
     //so we return it, throwing away instance created by previous call to builder
-    if let previouslyResolved: T = previouslyResolved(for: definition, key: key) {
+    if let previouslyResolved: T = context.container.previouslyResolved(for: definition, key: key) {
       log(level: .Verbose, "Reusing previously resolved instance \(previouslyResolved)")
       return previouslyResolved
     }
@@ -208,6 +208,10 @@ extension DependencyContainer {
     return resolvedInstance
   }
   
+  private enum InternalError : Error {
+    case noPreviouslyResolvedFound
+  }
+  
   private func previouslyResolved<T>(for definition: _Definition, key: DefinitionKey) -> T? {
     //first check if exact key was already resolved
     if let previouslyResolved = resolvedInstances[key: key, inScope: definition.scope, context: context] as? T {
@@ -222,6 +226,22 @@ extension DependencyContainer {
         return previouslyResolved
       }
     }
+
+    //Search the parent for resolved instances.
+    if let parent = parent {
+      if let previouslyResolvedInParent : T = try? parent.inContext(key: key,
+                       injectedInType: self.context.injectedInType,
+                       container: context.container,
+                       block: { () -> T in
+                        if let p: T = parent.previouslyResolved(for: definition, key: key) {
+                          return p
+                        }
+                        throw InternalError.noPreviouslyResolvedFound
+        }) {
+          return previouslyResolvedInParent
+      }
+    }
+
     return nil
   }
   
