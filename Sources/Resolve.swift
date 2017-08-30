@@ -212,7 +212,7 @@ extension DependencyContainer {
     case noPreviouslyResolvedFound
   }
   
-  private func previouslyResolved<T>(for definition: _Definition, key: DefinitionKey) -> T? {
+  internal func previouslyResolved<T>(for definition: _Definition, key: DefinitionKey) -> T? {
     //first check if exact key was already resolved
     if let previouslyResolved = resolvedInstances[key: key, inScope: definition.scope, context: context] as? T {
       return previouslyResolved
