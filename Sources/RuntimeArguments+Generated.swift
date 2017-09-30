@@ -84,7 +84,7 @@ extension DependencyContainer {
     public func register<T, A, B>(_ scope: ComponentScope = .shared,
                                   type: T.Type = T.self,
                                   tag: DependencyTagConvertible? = nil,
-                                  factory: @escaping (A, B) throws -> T) -> Definition<T, (A, B)> {
+                                  factory: @escaping ((A, B)) throws -> T) -> Definition<T, (A, B)> {
         weak var definitionWeak: Definition<T, (A, B)>!
 
         let definition = register(scope: scope,
@@ -100,7 +100,7 @@ extension DependencyContainer {
                 return previouslyResolved
             }
 
-            return try factory(a, b)
+            return try factory((a, b))
         }
 
         definitionWeak = definition
@@ -109,7 +109,7 @@ extension DependencyContainer {
 
     /// - seealso: `resolve(tag:arguments:)`
     public func resolve<T, A, B>(tag: DependencyTagConvertible? = nil, arguments arg1: A, _ arg2: B) throws -> T {
-        return try resolve(tag: tag) { factory in try factory(arg1, arg2) }
+        return try resolve(tag: tag) { factory in try factory((arg1, arg2)) }
     }
 
     /// - seealso: `resolve(_:tag:)`, `resolve(tag:arguments:)`
@@ -125,7 +125,7 @@ extension DependencyContainer {
     public func register<T, A, B, C>(_ scope: ComponentScope = .shared,
                                      type: T.Type = T.self,
                                      tag: DependencyTagConvertible? = nil,
-                                     factory: @escaping (A, B, C) throws -> T) -> Definition<T, (A, B, C)> {
+                                     factory: @escaping ((A, B, C)) throws -> T) -> Definition<T, (A, B, C)> {
         weak var definitionWeak: Definition<T, (A, B, C)>!
 
         let definition = register(scope: scope,
@@ -142,7 +142,7 @@ extension DependencyContainer {
                 return previouslyResolved
             }
 
-            return try factory(a, b, c)
+            return try factory((a, b, c))
         }
 
         definitionWeak = definition
@@ -151,7 +151,7 @@ extension DependencyContainer {
 
     /// - seealso: `resolve(tag:arguments:)`
     public func resolve<T, A, B, C>(tag: DependencyTagConvertible? = nil, arguments arg1: A, _ arg2: B, _ arg3: C) throws -> T {
-        return try resolve(tag: tag) { factory in try factory(arg1, arg2, arg3) }
+        return try resolve(tag: tag) { factory in try factory((arg1, arg2, arg3)) }
     }
 
     /// - seealso: `resolve(_:tag:)`, `resolve(tag:arguments:)`
@@ -167,7 +167,7 @@ extension DependencyContainer {
     public func register<T, A, B, C, D>(_ scope: ComponentScope = .shared,
                                         type: T.Type = T.self,
                                         tag: DependencyTagConvertible? = nil,
-                                        factory: @escaping (A, B, C, D) throws -> T) -> Definition<T, (A, B, C, D)> {
+                                        factory: @escaping ((A, B, C, D)) throws -> T) -> Definition<T, (A, B, C, D)> {
         weak var definitionWeak: Definition<T, (A, B, C, D)>!
 
         let definition = register(scope: scope,
@@ -185,7 +185,7 @@ extension DependencyContainer {
                 return previouslyResolved
             }
 
-            return try factory(a, b, c, d)
+            return try factory((a, b, c, d))
         }
 
         definitionWeak = definition
@@ -194,7 +194,7 @@ extension DependencyContainer {
 
     /// - seealso: `resolve(tag:arguments:)`
     public func resolve<T, A, B, C, D>(tag: DependencyTagConvertible? = nil, arguments arg1: A, _ arg2: B, _ arg3: C, _ arg4: D) throws -> T {
-        return try resolve(tag: tag) { factory in try factory(arg1, arg2, arg3, arg4) }
+        return try resolve(tag: tag) { factory in try factory((arg1, arg2, arg3, arg4)) }
     }
 
     /// - seealso: `resolve(_:tag:)`, `resolve(tag:arguments:)`
@@ -210,7 +210,7 @@ extension DependencyContainer {
     public func register<T, A, B, C, D, E>(_ scope: ComponentScope = .shared,
                                            type: T.Type = T.self,
                                            tag: DependencyTagConvertible? = nil,
-                                           factory: @escaping (A, B, C, D, E) throws -> T) -> Definition<T, (A, B, C, D, E)> {
+                                           factory: @escaping ((A, B, C, D, E)) throws -> T) -> Definition<T, (A, B, C, D, E)> {
         weak var definitionWeak: Definition<T, (A, B, C, D, E)>!
 
         let definition = register(scope: scope,
@@ -229,7 +229,7 @@ extension DependencyContainer {
                 return previouslyResolved
             }
 
-            return try factory(a, b, c, d, e)
+            return try factory((a, b, c, d, e))
         }
 
         definitionWeak = definition
@@ -238,7 +238,7 @@ extension DependencyContainer {
 
     /// - seealso: `resolve(tag:arguments:)`
     public func resolve<T, A, B, C, D, E>(tag: DependencyTagConvertible? = nil, arguments arg1: A, _ arg2: B, _ arg3: C, _ arg4: D, _ arg5: E) throws -> T {
-        return try resolve(tag: tag) { factory in try factory(arg1, arg2, arg3, arg4, arg5) }
+        return try resolve(tag: tag) { factory in try factory((arg1, arg2, arg3, arg4, arg5)) }
     }
 
     /// - seealso: `resolve(_:tag:)`, `resolve(tag:arguments:)`
@@ -254,7 +254,7 @@ extension DependencyContainer {
     public func register<T, A, B, C, D, E, F>(_ scope: ComponentScope = .shared,
                                               type: T.Type = T.self,
                                               tag: DependencyTagConvertible? = nil,
-                                              factory: @escaping (A, B, C, D, E, F) throws -> T) -> Definition<T, (A, B, C, D, E, F)> {
+                                              factory: @escaping ((A, B, C, D, E, F)) throws -> T) -> Definition<T, (A, B, C, D, E, F)> {
         weak var definitionWeak: Definition<T, (A, B, C, D, E, F)>!
 
         let definition = register(scope: scope,
@@ -274,7 +274,7 @@ extension DependencyContainer {
                 return previouslyResolved
             }
 
-            return try factory(a, b, c, d, e, f)
+            return try factory((a, b, c, d, e, f))
         }
 
         definitionWeak = definition
@@ -283,7 +283,7 @@ extension DependencyContainer {
 
     /// - seealso: `resolve(tag:arguments:)`
     public func resolve<T, A, B, C, D, E, F>(tag: DependencyTagConvertible? = nil, arguments arg1: A, _ arg2: B, _ arg3: C, _ arg4: D, _ arg5: E, _ arg6: F) throws -> T {
-        return try resolve(tag: tag) { factory in try factory(arg1, arg2, arg3, arg4, arg5, arg6) }
+        return try resolve(tag: tag) { factory in try factory((arg1, arg2, arg3, arg4, arg5, arg6)) }
     }
 
     /// - seealso: `resolve(_:tag:)`, `resolve(tag:arguments:)`

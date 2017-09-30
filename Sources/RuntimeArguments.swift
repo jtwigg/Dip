@@ -65,7 +65,7 @@ extension DependencyContainer {
    container.register(Client.self, factory: ClientImp.init(service:))
    ```
    */
-  @discardableResult public func register<T>(_ scope: ComponentScope = .shared, type: T.Type = T.self, tag: DependencyTagConvertible? = nil, factory: @escaping () throws -> T) -> Definition<T, ()> {
+  @discardableResult public func register<T>(_ scope: ComponentScope = .shared, type: T.Type = T.self, tag: DependencyTagConvertible? = nil, factory: @escaping (()) throws -> T) -> Definition<T, ()> {
     let definition = DefinitionBuilder<T, ()> {
       $0.scope = scope
       $0.factory = factory

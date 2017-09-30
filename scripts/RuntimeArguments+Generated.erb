@@ -37,7 +37,7 @@ extension DependencyContainer {
     public func register<T, <%= arg_tuples %>>(_ scope: ComponentScope = .shared,
                                           type: T.Type = T.self,
                                           tag: DependencyTagConvertible? = nil,
-                                          factory: @escaping (<%= arg_tuples %>) throws -> T) -> Definition<T, (<%= arg_tuples %>)> {
+                                          factory: @escaping ((<%= arg_tuples %>)) throws -> T) -> Definition<T, (<%= arg_tuples %>)> {
         weak var definitionWeak : Definition<T, (<%= arg_tuples %>)>!
 
        let definition = register(scope: scope,
@@ -54,7 +54,7 @@ extension DependencyContainer {
                 return previouslyResolved
             }
 
-            return try factory(<%= arg_tuples_lowercase %>)
+            return try factory((<%= arg_tuples_lowercase %>))
         }
 
         definitionWeak = definition
@@ -90,7 +90,7 @@ extension DependencyContainer {
     /// - seealso: `resolve(tag:arguments:)`
     <% end %>
     public func resolve<T, <%= arg_tuples %>>(tag: DependencyTagConvertible? = nil, <%= arg_param %>) throws -> T {
-        return try resolve(tag: tag) { factory in try factory(<%= arg_types %>) }
+        return try resolve(tag: tag) { factory in try factory((<%= arg_types %>)) }
     }
 
     /// - seealso: `resolve(_:tag:)`, `resolve(tag:arguments:)`
