@@ -1,3 +1,5 @@
+//AUTO-GENERATED: RuntimeArugment+Generated.erb. Run ./generate
+
 extension DependencyContainer {
   
 <% arg_count = 6 %>
@@ -31,8 +33,10 @@ extension DependencyContainer {
     // MARK: <%=i%> Runtime Arguments
 
     /// - seealso: `register(_:type:tag:factory:)`
+    //AUTO-GENERATED: RuntimeArugment+Generated.erb. Run ./generate
 
 <% end %>
+
     @discardableResult 
     public func register<T, <%= arg_tuples %>>(_ scope: ComponentScope = .shared,
                                           type: T.Type = T.self,
@@ -63,6 +67,7 @@ extension DependencyContainer {
 
     <% if i == 1 %>
     /**
+    AUTO-GENERATED: RuntimeArugment+Generated.erb. Run ./generate
     Resolve type `T` using one runtime argument.
 
     - note: When resolving a type container will first try to use definition 
@@ -88,12 +93,14 @@ extension DependencyContainer {
     */
     <% else %>
     /// - seealso: `resolve(tag:arguments:)`
+    //AUTO-GENERATED: RuntimeArugment+Generated.erb. Run ./generate
     <% end %>
     public func resolve<T, <%= arg_tuples %>>(tag: DependencyTagConvertible? = nil, <%= arg_param %>) throws -> T {
         return try resolve(tag: tag) { factory in try factory((<%= arg_types %>)) }
     }
 
     /// - seealso: `resolve(_:tag:)`, `resolve(tag:arguments:)`
+    //AUTO-GENERATED: RuntimeArugment+Generated.erb. Run ./generate
     public func resolve<<%= arg_tuples %>>(_ type: Any.Type, tag: DependencyTagConvertible? = nil, <%= arg_param %>) throws -> Any {
         return try resolve(type, tag: tag) { factory in try factory((<%= arg_types %>)) }
     }
