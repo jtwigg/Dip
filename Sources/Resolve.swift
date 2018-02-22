@@ -235,11 +235,7 @@ extension DependencyContainer {
     log(level: .Verbose, "Resolved type \(key.type) with \(resolvedInstance)")
     return resolvedInstance
   }
-  
-  private enum InternalError : Error {
-    case noPreviouslyResolvedFound
-  }
-  
+
   internal func previouslyResolved<T>(for definition: _Definition, key: DefinitionKey) -> T? {
     //first check if exact key was already resolved
     if let previouslyResolved = resolvedInstances[key: key, inScope: definition.scope, context: context] as? T {
@@ -257,14 +253,11 @@ extension DependencyContainer {
 
     //Search the parent for resolved instances.
     if let parent = parent {
-      if let previouslyResolvedInParent : T = try? parent.inContext(key: key,
+      if let previouslyResolvedInParent : T = parent.inContext(key: key,
                        injectedInType: self.context.injectedInType,
                        container: context.container,
-                       block: { () -> T in
-                        if let p: T = parent.previouslyResolved(for: definition, key: key) {
-                          return p
-                        }
-                        throw InternalError.noPreviouslyResolvedFound
+                       block: { () -> T? in
+                        return parent.previouslyResolved(for: definition, key: key)
         }) {
           return previouslyResolvedInParent
       }
