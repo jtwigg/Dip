@@ -28,6 +28,9 @@ extension DependencyContainer {
    Resolves properties of passed object wrapped with `Injected<T>` or `InjectedWeak<T>`
    */
   func autoInjectProperties(in instance: Any) throws {
+    print("Dumping")
+    dump(instance)
+    print("Autoinjecting: \(String(describing: instance))")
     let mirror = Mirror(reflecting: instance)
     
     //mirror only contains class own properties
