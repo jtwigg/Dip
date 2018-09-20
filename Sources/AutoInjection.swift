@@ -38,8 +38,12 @@ extension DependencyContainer {
       try superClassMirror?.children.forEach(resolveChild)
       superClassMirror = superClassMirror?.superclassMirror
     }
-    
-    try mirror.children.forEach(resolveChild)
+
+    if let mirrorChildren = AnyBidirectionalCollection(mirror.children) {
+      for childToResolve in mirrorChildren {
+        try resolveChild(child: childToResolve)
+      }
+    }
   }
   
   private func resolveChild(child: Mirror.Child) throws {
