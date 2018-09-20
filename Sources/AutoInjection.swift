@@ -39,15 +39,14 @@ extension DependencyContainer {
       superClassMirror = superClassMirror?.superclassMirror
     }
 
-    if let mirrorChildren = AnyBidirectionalCollection(mirror.children) {
-      for childToResolve in mirrorChildren {
-        try resolveChild(child: childToResolve)
-      }
+    for case let (label?, value) in mirror.children {
+      try resolveChild(child: (label, value))
     }
   }
   
   private func resolveChild(child: Mirror.Child) throws {
     //HOTFIX for https://bugs.swift.org/browse/SR-2282
+//    guard !String(describing: type(of: child.value)).has(prefix: "Optional") else { return }
     guard !String(describing: type(of: child.value)).has(prefix: "ImplicitlyUnwrappedOptional") else { return }
     guard let injectedPropertyBox = child.value as? AutoInjectedPropertyBox else { return }
     
