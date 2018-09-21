@@ -210,6 +210,8 @@ extension DependencyContainer {
      That happens because when Optional is casted to Any Swift can not implicitly unwrap it with as operator.
      As a workaround we detect boxing here and unwrap it so that we return not a box, but wrapped instance.
      */
+
+    let str = String(reflecting: resolvedInstance)
     if let box = resolvedInstance as? BoxType, let unboxedAny = box.unboxed, let unboxed = unboxedAny as? T {
       resolvedInstance = unboxed
     }
@@ -228,8 +230,14 @@ extension DependencyContainer {
       resolvedInstances.resolvableInstances.append(resolvable)
       resolvable.resolveDependencies(context.inCollaboration ? self : context.container)
     }
-    
-    try autoInjectProperties(in: resolvedInstance)
+
+    if str.contains("OCMock") {
+      print("skipping auto injection for OCMock type: \(str)")
+    } else {
+      print("autoinjecting instance: \(str)")
+      try autoInjectProperties(in: resolvedInstance)
+    }
+
     try definition.resolveProperties(of: resolvedInstance, container: context.inCollaboration ? self : context.container)
     
     log(level: .Verbose, "Resolved type \(key.type) with \(resolvedInstance)")

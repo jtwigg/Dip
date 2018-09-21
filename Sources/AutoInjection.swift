@@ -28,9 +28,6 @@ extension DependencyContainer {
    Resolves properties of passed object wrapped with `Injected<T>` or `InjectedWeak<T>`
    */
   func autoInjectProperties(in instance: Any) throws {
-    print("Dumping")
-    dump(instance)
-    print("Autoinjecting: \(String(describing: instance))")
     let mirror = Mirror(reflecting: instance)
     
     //mirror only contains class own properties
@@ -42,9 +39,7 @@ extension DependencyContainer {
       superClassMirror = superClassMirror?.superclassMirror
     }
 
-    for case let (label?, value) in mirror.children {
-      try resolveChild(child: (label, value))
-    }
+    try mirror.children.forEach(resolveChild)
   }
   
   private func resolveChild(child: Mirror.Child) throws {
