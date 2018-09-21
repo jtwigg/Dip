@@ -211,7 +211,7 @@ extension DependencyContainer {
      As a workaround we detect boxing here and unwrap it so that we return not a box, but wrapped instance.
      */
 
-    let str = String(reflecting: resolvedInstance)
+    let resolvedDescription = String(reflecting: resolvedInstance)
     if let box = resolvedInstance as? BoxType, let unboxedAny = box.unboxed, let unboxed = unboxedAny as? T {
       resolvedInstance = unboxed
     }
@@ -231,10 +231,7 @@ extension DependencyContainer {
       resolvable.resolveDependencies(context.inCollaboration ? self : context.container)
     }
 
-    if str.contains("OCMock") {
-      print("skipping auto injection for OCMock type: \(str)")
-    } else {
-      print("autoinjecting instance: \(str)")
+    if !resolvedDescription.contains("OCMock") {
       try autoInjectProperties(in: resolvedInstance)
     }
 
