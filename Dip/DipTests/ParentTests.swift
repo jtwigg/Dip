@@ -339,9 +339,18 @@ class ParentTests: XCTestCase {
     XCTAssert(levelThreeInjected.levelThree.levelTwo.levelOne === levelThreeInjected.levelOne.value)
   }
 
+  class DependancyX{}
+
+  class DependancyWithInputA : Servicable{
+    init(x: DependancyX) {}
+  }
+  class DependancyWithInputB : Servicable{
+    init(x: DependancyX) {}
+  }
 
   class DependancyA : Servicable{}
   class DependancyB : Servicable{}
+
 
   class ConcreteA {
     let servicable = Injected<Servicable>()
@@ -354,6 +363,44 @@ class ParentTests: XCTestCase {
       self.servicable = servicable
     }
   }
+
+  func testOverridingImplementationWorks() {
+    let rootContainer = DependencyContainer()
+    var exectued = false
+    rootContainer.register { (x: DependancyX) -> DependancyWithInputA in
+      XCTFail()
+      exectued = true
+      return DependancyWithInputA(x:x)
+    }.implements(Servicable.self)
+
+    rootContainer.register { () -> DependancyX in
+      DependancyX()
+    }
+    rootContainer.register { () -> ConcreteA in
+      ConcreteA()
+    }
+
+    rootContainer.register {
+        LevelThreeAggregate(levelThree: $0, levelOne: $1)
+    }
+
+    rootContainer.register {
+        LevelTwo(levelOne: $0)
+    }
+
+    rootContainer.register(factory: ConcreteB.init)
+
+    rootContainer.register { (x: DependancyX) -> DependancyWithInputB in
+      DependancyWithInputB(x:x)
+    }.implements(Servicable.self)
+
+    let concreteB: Servicable = try! rootContainer.resolve() as Servicable
+    print(concreteB)
+    if exectued {
+      return
+    }
+  }
+  
 
   /**
    Protocol forwarding can be overriden by children.
